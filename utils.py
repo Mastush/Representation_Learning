@@ -19,3 +19,10 @@ def unison_shuffled_copies(a, b):
 def normalize_vectors(mat):
     mags = np.linalg.norm(mat, axis=0)
     return np.divide(mat, mags)
+
+
+def flatten_data(data):
+    last_dim = 1
+    for i in range(1, len(data.shape)):
+        last_dim *= data.shape[i]
+    return np.reshape(data, (data.shape[0], last_dim))
