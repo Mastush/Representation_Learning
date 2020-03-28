@@ -14,3 +14,8 @@ def unison_shuffled_copies(a, b):
     assert len(a) == len(b)
     p = np.random.permutation(len(a))
     return a[p], b[p]
+
+
+def normalize_vectors(mat):
+    mags = np.linalg.norm(mat, axis=0)
+    return np.divide(mat, mags)

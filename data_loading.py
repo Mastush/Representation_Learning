@@ -22,15 +22,18 @@ class RepresentableDataset:
 
 
 class RepresentableVectorDataset(RepresentableDataset):
-    def __init__(self, representations: list):
+    def __init__(self, representations: list, normalize: bool=True):
         super(RepresentableVectorDataset, self).__init__(representations)
         self._PCA = None
+        self._normalize = normalize
 
-    def _apply_pca(self, x, d: int=None):
+    def _make_and_fit_pca(self, x, d):
         if d is not None and self._PCA is None:
             self._PCA = PCA(d)
             self._PCA.fit(x, None)
-        return self._PCA.transform(x)
+
+    def _apply_pca(self, x, d: int=None):
+        return x if x.shape[-1] == d else self._PCA.transform(x)
 
     @abstractmethod
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
@@ -44,16 +47,21 @@ class RepresentableVectorDataset(RepresentableDataset):
 
     def get_examples(self, x, y, n: int = None, apply_representations: bool = True,
                      dim_reduction: int = None, shuffle: bool = False):
+        if self._PCA is None and dim_reduction is not None:
+            self._make_and_fit_pca(x, dim_reduction)
+        if shuffle:
+            x, y = utils.unison_shuffled_copies(x, y)
+        x, y = (x, y) if n is None else (x[:n], y[:n])
         if dim_reduction is not None:
             x = self._apply_pca(x, dim_reduction)
         else:
             x = np.copy(x)
         y = np.copy(y)
-        if shuffle:
-            x, y = utils.unison_shuffled_copies(x, y)
+        if self._normalize:
+            x = utils.normalize_vectors(x)
         if apply_representations:
-            x = self.apply_representations(x)
-        return x, y if n is None else x[:n], y[:n]
+            x = np.asarray([self.apply_representations(x[i]) for i in range(x.shape[0])])
+        return x, y
 
 
 class RepresentableMnist(RepresentableVectorDataset):

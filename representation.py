@@ -15,11 +15,13 @@ class Representation(ABC):
 class SimpleNetworkGradientRepresentation(Representation):
     def __init__(self,
                  model: SimpleNetwork):
-        self._model = model
+        self._model = model.float()
 
     def __call__(self, x, return_ndarray=True):
         self._model.zero_grad()
         self._model.train()
+        if not isinstance(x, torch.Tensor):
+            x = torch.from_numpy(x).float().to(utils.get_device())
         y = self._model(x)
         y.backward()
         gradient_matrix = utils.safe_tensor_to_ndarray(self._model._layer1.weight.grad) if \
