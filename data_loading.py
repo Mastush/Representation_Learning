@@ -46,7 +46,7 @@ class RepresentableVectorDataset(RepresentableDataset):
         pass
 
     def get_examples(self, x, y, n: int = None, apply_representations: bool = True,
-                     dim_reduction: int = None, shuffle: bool = False):
+                     dim_reduction: int = None, shuffle: bool = False, y_preprocessing=None):
         if self._PCA is None and dim_reduction is not None:
             self._make_and_fit_pca(x, dim_reduction)
         if shuffle:
@@ -61,6 +61,8 @@ class RepresentableVectorDataset(RepresentableDataset):
             x = utils.normalize_vectors(x)
         if apply_representations:
             x = np.asarray([self.apply_representations(x[i]) for i in range(x.shape[0])])
+        if y_preprocessing is not None:
+            y = y_preprocessing(y)
         return x, y
 
 
@@ -74,13 +76,19 @@ class RepresentableMnist(RepresentableVectorDataset):
         self._test_labels = y[:60000:]
         self._PCA = None
 
+        def mnist_to_binary_truth(truth):
+            truth = (truth.astype(np.int) > 4).astype(np.int)
+            truth[truth == 0] = -1
+            return truth
+        self._y_preprocessing = mnist_to_binary_truth
+
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
                               dim_reduction: int = None, shuffle: bool = False):
         return self.get_examples(self._training_ims, self._training_labels, n, apply_representations,
-                                 dim_reduction, shuffle)
+                                 dim_reduction, shuffle, self._y_preprocessing)
 
     def get_test_examples(self, n: int = None, apply_representations: bool = True,
                           dim_reduction: int = None, shuffle: bool = False):
         return self.get_examples(self._test_ims, self._test_labels, n, apply_representations,
-                                 dim_reduction, shuffle)
+                                 dim_reduction, shuffle, self._y_preprocessing)
 

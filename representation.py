@@ -28,5 +28,3 @@ class SimpleNetworkGradientRepresentation(Representation):
             return_ndarray else self._model._layer1.weight.grad
 
         return gradient_matrix
-
-
