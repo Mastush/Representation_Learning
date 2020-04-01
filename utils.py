@@ -1,5 +1,9 @@
 import torch
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+
+EPSILON = 0.0000001
 
 
 def get_device():
@@ -17,7 +21,8 @@ def unison_shuffled_copies(a: np.ndarray, b: np.ndarray):
 
 
 def normalize_vectors(mat: np.ndarray):
-    mags = np.linalg.norm(mat, axis=0)
+    mat = flatten_data(mat)
+    mags = np.linalg.norm(mat, axis=0) + EPSILON
     return np.divide(mat, mags)
 
 
@@ -26,3 +31,9 @@ def flatten_data(data: np.ndarray):
     for i in range(1, len(data.shape)):
         last_dim *= data.shape[i]
     return np.reshape(data, (data.shape[0], last_dim))
+
+
+def standardize_data(x):
+    scaler = StandardScaler()
+    scaler.fit(x)
+    return scaler.transform(x), scaler.mean_, scaler.scale_

@@ -5,6 +5,9 @@ import utils
 
 
 class ModelWrapper(ABC):
+    """
+    A class for easy usage of predictors. Allows predictors to be called as functions
+    """
     def __init__(self, model):
         self._model = model
 
@@ -14,10 +17,13 @@ class ModelWrapper(ABC):
 
 
 class SVMWrapper(ModelWrapper):
-    def __init__(self, model: SGDClassifier):
+    def __init__(self, model: SGDClassifier):  # TODO: change type?
         super(SVMWrapper, self).__init__(model)
 
     def __call__(self, x):
         if len(x.shape) > 2:
             x = utils.flatten_data(x)
         return self._model.predict(x)
+
+    def get_w(self):
+        return self._model.coef_

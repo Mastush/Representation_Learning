@@ -22,10 +22,13 @@ class RepresentableDataset:
 
 
 class RepresentableVectorDataset(RepresentableDataset):
-    def __init__(self, representations: list, normalize: bool=True):
+    def __init__(self, representations: list, normalize: bool = False, standardize: bool = True):
         super(RepresentableVectorDataset, self).__init__(representations)
         self._PCA = None
         self._normalize = normalize
+        self._standardize = standardize
+        self._standardization_mean = None
+        self._standardization_std = None
 
     def _make_and_fit_pca(self, x, d):
         if d is not None and self._PCA is None:
@@ -45,8 +48,22 @@ class RepresentableVectorDataset(RepresentableDataset):
                           dim_reduction: int = None, shuffle: bool = False):
         pass
 
+    def _standardize_data(self, x):
+        if self._standardization_mean is None:
+            assert self._standardization_std is None
+            x, mean, std = utils.standardize_data(x)
+            self._standardization_mean = mean
+            self._standardization_std = std
+        else:
+            assert self._standardization_std is not None
+            x -= self._standardization_mean
+            x /= self._standardization_std
+        return x
+
     def get_examples(self, x, y, n: int = None, apply_representations: bool = True,
                      dim_reduction: int = None, shuffle: bool = False, y_preprocessing=None):
+        x = np.copy(x)
+        y = np.copy(y)
         if self._PCA is None and dim_reduction is not None:
             self._make_and_fit_pca(x, dim_reduction)
         if shuffle:
@@ -59,6 +76,8 @@ class RepresentableVectorDataset(RepresentableDataset):
         y = np.copy(y)
         if self._normalize:
             x = utils.normalize_vectors(x)
+        if self._standardize:
+            x = self._standardize_data(x)
         if apply_representations:
             x = np.asarray([self.apply_representations(x[i]) for i in range(x.shape[0])])
         if y_preprocessing is not None:
@@ -70,10 +89,11 @@ class RepresentableMnist(RepresentableVectorDataset):
     def __init__(self, representations: list):
         super(RepresentableMnist, self).__init__(representations)
         x, y = fetch_openml('mnist_784', version=1, return_X_y=True)
-        self._training_ims = x[:60000]
-        self._training_labels = y[:60000]
-        self._test_ims = x[60000:]
-        self._test_labels = y[:60000:]
+        THRESHOLD = 60000
+        self._training_ims = x[:THRESHOLD]
+        self._training_labels = y[:THRESHOLD]
+        self._test_ims = x[THRESHOLD:]
+        self._test_labels = y[THRESHOLD:]
         self._PCA = None
 
         def mnist_to_binary_truth(truth):
