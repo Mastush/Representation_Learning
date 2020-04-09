@@ -34,6 +34,7 @@ def flatten_data(data: np.ndarray):
 
 
 def standardize_data(x):
-    scaler = StandardScaler()
-    scaler.fit(x)
-    return scaler.transform(x), scaler.mean_, scaler.scale_
+    mean, std = x.mean(axis=0), x.std(0)
+    x -= mean
+    x /= (std + EPSILON)
+    return x, mean, (std + EPSILON)

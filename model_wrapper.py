@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from sklearn.linear_model import SGDClassifier
+from sklearn.base import BaseEstimator
 
 import utils
 
@@ -17,7 +18,7 @@ class ModelWrapper(ABC):
 
 
 class SVMWrapper(ModelWrapper):
-    def __init__(self, model: SGDClassifier):  # TODO: change type?
+    def __init__(self, model: BaseEstimator):  # TODO: change type?
         super(SVMWrapper, self).__init__(model)
 
     def __call__(self, x):

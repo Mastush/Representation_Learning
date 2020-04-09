@@ -71,9 +71,6 @@ class RepresentableVectorDataset(RepresentableDataset):
         x, y = (x, y) if n is None else (x[:n], y[:n])
         if dim_reduction is not None:
             x = self._apply_pca(x, dim_reduction)
-        else:
-            x = np.copy(x)
-        y = np.copy(y)
         if self._normalize:
             x = utils.normalize_vectors(x)
         if self._standardize:
