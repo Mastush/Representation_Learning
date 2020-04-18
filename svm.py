@@ -20,9 +20,9 @@ def get_linear_separator(x: np.ndarray, y: np.ndarray, return_classifier=True,
     if len(x.shape) > 2:
         x = utils.flatten_data(x)
     svm_classifier = get_classifier_type(type_of_classifier)
-    if not hasattr(svm_classifier, "alpha"):
+    try:
         svm_classifier = svm_classifier(C=alpha, max_iter=max_iter, verbose=verbose)
-    else:
+    except TypeError:
         svm_classifier = svm_classifier(alpha=alpha, max_iter=max_iter, verbose=verbose)
     svm_classifier.fit(x, y)
     if return_classifier:

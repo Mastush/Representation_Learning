@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 import utils
 
 
-class RepresentableDataset:
+class RepresentableDataset:  # TODO: allow standartization after each rep?
     def __init__(self, representations: list):
         self._representations = representations
 
@@ -19,6 +19,12 @@ class RepresentableDataset:
         for rep in self._representations:
             x = rep(x)
         return x
+
+    def append_representation(self, rep):
+        self._representations.append(rep)
+
+    def update_representations(self, representations):
+        self._representations = representations
 
 
 class RepresentableVectorDataset(RepresentableDataset):
