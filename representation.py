@@ -13,6 +13,16 @@ class BaseRepresentation(ABC):
         pass
 
 
+class SequentialRepresentation(BaseRepresentation):
+    def __init__(self, representations: list):
+        self._sub_representations = representations
+
+    def __call__(self, x, *args):
+        for rep in self._sub_representations:
+            x = rep(x)
+        return x
+
+
 class SimpleNetworkGradientRepresentation(BaseRepresentation):  # TODO: this can be simplified to use closed forms
     def __init__(self, model: SimpleNetwork):
         self._model = model.float()
@@ -49,7 +59,7 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this
         return np.squeeze(gradient_matrix)
 
 
-class MatrixRepresentation(BaseRepresentation):
+class MatrixRepresentation(BaseRepresentation):  # TODO: add get imput& output shapes
     def __init__(self, M: np.ndarray, shape=None, mode: int = 1):
         """
         :param M: a matrix or a vector, make sure that the last entry is NOT a bias term!

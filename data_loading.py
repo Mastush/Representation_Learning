@@ -4,6 +4,7 @@ from sklearn.datasets import fetch_openml
 from sklearn.decomposition import PCA
 
 import utils
+from representation import SequentialRepresentation
 
 
 class RepresentableDataset:  # TODO: allow standartization after each rep?
@@ -42,10 +43,16 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
         self._standardization_mean.append(None)
         self._standardization_std.append(None)
 
+    def remove_representations(self, n):
+        self._representations = self._representations[:-n]
+
     def update_representations(self, representations):
         self._representations = representations
         self._standardization_mean = [None] * (len(representations) + 1)
         self._standardization_std = [None] * (len(representations) + 1)
+
+    def get_representations(self, as_sequential: bool = False):
+        return SequentialRepresentation(self._representations) if as_sequential else self._representations
 
     def _standardize_data(self, x, phase: int, redo_standardization: bool = False):
         if self._standardization_mean[phase] is None or redo_standardization:

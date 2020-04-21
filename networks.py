@@ -45,10 +45,10 @@ class SimpleConvNetwork(nn.Module):
     """
     A FC neural network with one hidden layer and one output node
     """
-    def __init__(self, k: int, c: int, input_shape: tuple, activation=ReLU, init_f=xavier_normal_, bias=False,
-                 stride: int = 1, padding: int = 0, dilation: int = 1):
+    def __init__(self, input_shape: tuple, c: int, activation=ReLU, init_f=xavier_normal_, bias=False,
+                 k: int = 3, stride: int = 1, padding: int = 0, dilation: int = 1):
         super(SimpleConvNetwork, self).__init__()
-        self.input_shape = input_shape
+        self.input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
         self._init_f = init_f
         self._bias = bias
 
@@ -60,6 +60,7 @@ class SimpleConvNetwork(nn.Module):
         self.to(utils.get_device())
 
     def forward(self, x):
+        x = x.reshape(self.input_shape)
         x = self._conv(x)
         x = self._activation(x).flatten()
         x = self._fc(x)
