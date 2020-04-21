@@ -59,6 +59,12 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
             x /= self._standardization_std[phase]
         return x
 
+    def set_standardize_raw(self, true_or_false: bool):
+        self._standardize_raw = true_or_false
+
+    def set_standardize_all(self, true_or_false: bool):
+        self._standardize_all = true_or_false
+
 
 class RepresentableVectorDataset(RepresentableDataset):
     def __init__(self, representations: list, normalize: bool = False,
@@ -106,8 +112,9 @@ class RepresentableVectorDataset(RepresentableDataset):
 
 
 class RepresentableMnist(RepresentableVectorDataset):
-    def __init__(self, representations: list, standardize_raw: bool = True, standardize_all: bool = True):
-        super(RepresentableMnist, self).__init__(representations, standardize_raw, standardize_all)
+    def __init__(self, representations: list, normalize: bool = False,
+                 standardize_raw: bool = True, standardize_all: bool = True):
+        super(RepresentableMnist, self).__init__(representations, normalize, standardize_raw, standardize_all)
         x, y = fetch_openml('mnist_784', version=1, return_X_y=True)
         THRESHOLD = 60000
         self._training_ims = x[:THRESHOLD]
