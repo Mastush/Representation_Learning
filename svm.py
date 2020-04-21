@@ -16,14 +16,13 @@ def get_classifier_type(classifier_type: str):
 
 def get_linear_separator(x: np.ndarray, y: np.ndarray, return_classifier=True,
                          alpha: float = 0.0001, max_iter: int = 1000,
-                         type_of_classifier: str = 'sdca', verbose: int = 1):
-    if len(x.shape) > 2:
-        x = utils.flatten_data(x)
+                         type_of_classifier: str = 'sdca', verbose: int = 1, tol=1e-5):
+    x = utils.add_ones_column(utils.flatten_data(x))
     svm_classifier = get_classifier_type(type_of_classifier)
     try:
-        svm_classifier = svm_classifier(C=alpha, max_iter=max_iter, verbose=verbose)
+        svm_classifier = svm_classifier(C=alpha, max_iter=max_iter, verbose=verbose, fit_intercept=False, tol=tol)
     except TypeError:
-        svm_classifier = svm_classifier(alpha=alpha, max_iter=max_iter, verbose=verbose)
+        svm_classifier = svm_classifier(alpha=alpha, max_iter=max_iter, verbose=verbose, tol=tol)
     svm_classifier.fit(x, y)
     if return_classifier:
         return SVMWrapper(svm_classifier)

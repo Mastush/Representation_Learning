@@ -38,3 +38,25 @@ def standardize_data(x):
     x -= mean
     x /= (std + EPSILON)
     return x, mean, (std + EPSILON)
+
+
+def conv_output_shape(h, w, channels, kernel_size=1, stride=1, pad=0, dilation=1):
+    from math import floor
+    if type(kernel_size) is not tuple:
+        kernel_size = (kernel_size, kernel_size)
+    h = floor(((h + (2 * pad) - ( dilation * (kernel_size[0] - 1) ) - 1 ) / stride) + 1)
+    w = floor(((w + (2 * pad) - ( dilation * (kernel_size[1] - 1) ) - 1 ) / stride) + 1)
+    return h, w, channels
+
+
+def add_ones_column(matrix: np.ndarray):
+    assert len(matrix.shape) == 2, "Entry must be a matrix!"
+    ones_col = np.ones((matrix.shape[0], 1))
+    return np.hstack((matrix, ones_col))
+
+
+def shape_to_size(shape):
+    size = 1
+    for i in range(len(shape)):
+        size *= shape[i]
+    return size

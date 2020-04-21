@@ -3,7 +3,7 @@ from torch.nn import BCELoss, Module
 import torch
 import numpy as np
 
-from networks import SimpleNetwork
+from networks import SimpleNetwork, SimpleConvNetwork
 import utils
 
 
@@ -14,7 +14,7 @@ class BaseRepresentation(ABC):
 
 
 class SimpleNetworkGradientRepresentation(BaseRepresentation):  # TODO: this can be simplified to use closed forms
-    def __init__(self,model: SimpleNetwork):
+    def __init__(self, model: SimpleNetwork):
         self._model = model.float()
 
     def __call__(self, x, return_ndarray=True):
@@ -28,6 +28,25 @@ class SimpleNetworkGradientRepresentation(BaseRepresentation):  # TODO: this can
             return_ndarray else self._model._layer1.weight.grad
 
         return gradient_matrix
+
+
+class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this can be simplified to use closed forms
+    def __init__(self, model: SimpleConvNetwork):
+        self._model = model.float()
+
+    def __call__(self, x, return_ndarray=True):
+        self._model.zero_grad()
+        self._model.train()
+        x = np.reshape(x, (1, *self._model.input_shape))
+
+        if not isinstance(x, torch.Tensor):
+            x = torch.from_numpy(x).float().to(utils.get_device())
+        y = self._model(x)
+        y.backward()
+        gradient_matrix = utils.safe_tensor_to_ndarray(self._model._conv.weight.grad) if \
+            return_ndarray else self._model._conv.weight.grad
+
+        return np.squeeze(gradient_matrix)
 
 
 class MatrixRepresentation(BaseRepresentation):
@@ -64,7 +83,7 @@ class MatrixRepresentation(BaseRepresentation):
         """
         If x is in R^(q x d), the output is in R^q
         """
-        return np.sum(self._M * x, axis=1)
+        return np.sum(self._M * x, axis=tuple(range(1, x.ndim)))
 
     def call_mode_2(self, x):
         """
@@ -87,6 +106,6 @@ class MatrixRepresentation(BaseRepresentation):
 
     def __call__(self, x, *args):
         x = self.check_and_fix_shape(x)
-        # return self._call_f(x)  # TODO: normalize somehow?
-        new_x = self._call_f(x)
-        return new_x / new_x.size
+        return self._call_f(x)  # TODO: normalize somehow?
+        # new_x = self._call_f(x)
+        # return new_x / new_x.size

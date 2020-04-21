@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from sklearn.linear_model import SGDClassifier
 from sklearn.base import BaseEstimator
+import numpy as np
 
 import utils
 
@@ -24,7 +25,9 @@ class SVMWrapper(ModelWrapper):
     def __call__(self, x):
         if len(x.shape) > 2:
             x = utils.flatten_data(x)
+        # TODO: add if len(x.shape) < 2
+        x = utils.add_ones_column(x)
         return self._model.predict(x)
 
     def get_w(self):
-        return self._model.coef_
+        return np.squeeze(self._model.coef_)
