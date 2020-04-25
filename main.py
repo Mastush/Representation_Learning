@@ -3,14 +3,14 @@ import rounds, data_loading, evaluation, svm
 
 import numpy as np
 
-n = None
-d = 50
+n = 10000
+d = 28
 dim_red = d
 
-q = 49
+q = 25
 
-mnist_dataset = data_loading.RepresentableMnist([])
-output_dim = rounds.add_network_to_vector_rounds(2, mnist_dataset, d, q, n, dim_red, network_type="simple")
+mnist_dataset = data_loading.RepresentableMnist([], standardize_all=False)
+output_dim = rounds.add_network_to_vector_rounds(1, mnist_dataset, d, q, n, dim_red, network_type="simple")
 # TODO: notice that we would get d=q bug here in the 2nd round!!!!!!! fix!!!!!!
 x, y = mnist_dataset.get_training_examples(n, dim_reduction=dim_red)
 x_test, y_test = mnist_dataset.get_test_examples(n, dim_reduction=dim_red)

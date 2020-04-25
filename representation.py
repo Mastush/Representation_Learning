@@ -93,7 +93,9 @@ class MatrixRepresentation(BaseRepresentation):  # TODO: add get imput& output s
         """
         If x is in R^(q x d), the output is in R^q
         """
+        # return np.sum(x, axis=tuple(range(1, x.ndim)))
         return np.sum(self._M * x, axis=tuple(range(1, x.ndim)))
+        # return np.sum(self._M * x, axis=tuple(range(1, x.ndim)))[:-1]
 
     def call_mode_2(self, x):
         """

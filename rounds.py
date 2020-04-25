@@ -2,6 +2,8 @@ import representation, svm, evaluation
 from data_loading import RepresentableVectorDataset
 from networks import SimpleConvNetwork, SimpleNetwork
 
+import numpy as np
+
 
 def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset, input_shape, q: int, n_train: int,
                                              dim_reduction: int = None, network_type: str = "simple",
@@ -15,7 +17,6 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
     x, y = dataset.get_training_examples(n_train, dim_reduction=dim_reduction)
     w = svm.get_linear_separator(x, y, type_of_classifier='sdca', verbose=2, alpha=0.0001,
                                  max_iter=1000)  # TODO: smart reg
-
     x, y = dataset.get_training_examples(n_train, dim_reduction=dim_reduction)
 
     # TODO: make this prettier, write a func for it
@@ -24,6 +25,8 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
     print("train performance is {}".format(performance))
     performance = evaluation.evaluate_model(w, x_test, y_test)
     print("test performance is {} \n\n".format(performance))
+
+    w._model.coef_ = np.ones(w._model.coef_.shape)
 
     w_rep = representation.MatrixRepresentation(w.get_w()[:-1], x.shape[1:], 1)
     dataset.append_representation(w_rep)
