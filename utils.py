@@ -60,3 +60,31 @@ def shape_to_size(shape):
     for i in range(len(shape)):
         size *= shape[i]
     return size
+
+
+def y_to_one_hot(y):
+    n = np.unique(y).size
+    one_hot_y = np.zeros((y.size, n))
+    for i, val in enumerate(np.unique(y)):
+        matching_indices = np.asarray(np.where(y == val))
+        one_hot_y[:, i][matching_indices] = 1
+    return one_hot_y
+
+
+def softmax_to_one_hot(y):
+    try:
+        y = y.detach().numpy()
+    except:
+        pass
+    argmax = np.argmax(y, axis=1)
+    one_hot_y = np.zeros(y.shape)
+    one_hot_y[np.arange((one_hot_y.shape[0])), argmax] = 1
+    return one_hot_y
+
+
+def get_last_dim_of_conv_network(layers: int, dim: int, pooling: bool):
+    for _ in range(layers):
+        dim = dim - 2
+        if pooling:
+            dim = dim // 2
+    return dim
