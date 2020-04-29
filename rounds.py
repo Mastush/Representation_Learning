@@ -26,8 +26,6 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
     performance = evaluation.evaluate_model(w, x_test, y_test)
     print("test performance is {} \n\n".format(performance))
 
-    w._model.coef_ = np.ones(w._model.coef_.shape)
-
     w_rep = representation.MatrixRepresentation(w.get_w()[:-1], x.shape[1:], 1)
     dataset.append_representation(w_rep)
 
@@ -42,5 +40,6 @@ def add_network_to_vector_rounds(n_rounds: int, dataset: RepresentableVectorData
     for i in range(n_rounds):
          output_dim = add_network_to_vector_representation_rep(dataset, input_shape if i == 0 else output_dim, q - i,
                                                                n_train, dim_reduction, network_type)
+        # q - i is because of q=d bug. TODO: fix q=d bug
     if return_output_dim:
         return output_dim

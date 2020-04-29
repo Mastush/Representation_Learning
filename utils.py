@@ -20,10 +20,10 @@ def unison_shuffled_copies(a: np.ndarray, b: np.ndarray):
     return a[p], b[p]
 
 
-def normalize_vectors(mat: np.ndarray):
-    mat = flatten_data(mat)
-    mags = np.linalg.norm(mat, axis=0) + EPSILON
-    return np.divide(mat, mags)
+def normalize_vectors(x: np.ndarray):
+    flat_x = flatten_data(x)  # TODO: fix for 3 dims
+    mags = np.linalg.norm(flat_x, axis=1) + EPSILON
+    return np.divide(x.T, mags).T
 
 
 def flatten_data(data: np.ndarray):

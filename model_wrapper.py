@@ -22,10 +22,10 @@ class SVMWrapper(ModelWrapper):
     def __init__(self, model: BaseEstimator):  # TODO: change type?
         super(SVMWrapper, self).__init__(model)
 
-    def __call__(self, x):
-        if len(x.shape) > 2:
-            x = utils.flatten_data(x)
-        # TODO: add if len(x.shape) < 2
+    def __call__(self, x, single_example: bool = False):
+        if single_example:
+            x = np.reshape(x, (1, *x.shape))
+        x = utils.flatten_data(x)
         x = utils.add_ones_column(x)
         return self._model.predict(x)
 

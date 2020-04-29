@@ -8,12 +8,15 @@ from representation import SequentialRepresentation
 
 
 class RepresentableDataset:  # TODO: allow standartization after each rep?
-    def __init__(self, representations: list, standardize_raw: bool = True, standardize_all: bool = True):
+    def __init__(self, representations: list, standardize_raw: bool = True, standardize_reps: bool = True,
+                 normalize_raw: bool = False, normalize_reps: bool = False):
         self._representations = representations
         self._standardization_mean = [None] * (len(representations) + 1)
         self._standardization_std = [None] * (len(representations) + 1)
         self._standardize_raw = standardize_raw
-        self._standardize_all = standardize_all
+        self._standardize_all = standardize_reps
+        self._normalize_raw = normalize_raw
+        self._normalize_reps = normalize_reps
 
     @abstractmethod
     def get_training_examples(self, n: int = None, apply_representations: bool = True):
@@ -23,10 +26,14 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
     def apply_representations_to_data(self, x):
         if self._standardize_raw:
             self._standardize_data(x, 0)
+        if self._normalize_raw:
+            x = utils.normalize_vectors(x)
         for i, rep in enumerate(self._representations):
             x = np.asarray([rep(x[j]) for j in range(x.shape[0])])  # TODO: allow vectorized way
             if self._standardize_all:
                 self._standardize_data(x, i + 1)
+            if self._normalize_reps:
+                x = utils.normalize_vectors(x)
         return x
 
     def apply_representation_to_example(self, x):
@@ -74,11 +81,11 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
 
 
 class RepresentableVectorDataset(RepresentableDataset):
-    def __init__(self, representations: list, normalize: bool = False,
-                 standardize_raw: bool = True, standardize_all: bool = True):
-        super(RepresentableVectorDataset, self).__init__(representations, standardize_raw, standardize_all)
+    def __init__(self, representations: list, standardize_raw: bool = True, standardize_reps: bool = True,
+                 normalize_raw: bool = False, normalize_reps: bool = False):
+        super(RepresentableVectorDataset, self).__init__(representations, standardize_raw, standardize_reps,
+                                                         standardize_raw, standardize_reps)
         self._PCA = None
-        self._normalize = normalize
 
     def _make_and_fit_pca(self, x, d):
         if d is not None and self._PCA is None:
@@ -109,8 +116,6 @@ class RepresentableVectorDataset(RepresentableDataset):
         x, y = (x, y) if n is None else (x[:n], y[:n])
         if dim_reduction is not None:
             x = self._apply_pca(x, dim_reduction)
-        if self._normalize:
-            x = utils.normalize_vectors(x)
         if apply_representations:
             x = self.apply_representations_to_data(x)
         if y_preprocessing is not None:
@@ -120,8 +125,10 @@ class RepresentableVectorDataset(RepresentableDataset):
 
 class RepresentableMnist(RepresentableVectorDataset):
     def __init__(self, representations: list, normalize: bool = False,
-                 standardize_raw: bool = True, standardize_all: bool = True):
-        super(RepresentableMnist, self).__init__(representations, normalize, standardize_raw, standardize_all)
+                 standardize_raw: bool = True, standardize_reps: bool = True,
+                 normalize_raw: bool = False, normalize_reps: bool = False):
+        super(RepresentableMnist, self).__init__(representations, standardize_raw, standardize_reps,
+                                                 normalize_raw, normalize_reps)
         x, y = fetch_openml('mnist_784', version=1, return_X_y=True)
         THRESHOLD = 60000
         self._training_ims = x[:THRESHOLD]
