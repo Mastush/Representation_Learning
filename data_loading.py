@@ -36,15 +36,6 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
                 x = utils.normalize_vectors(x)
         return x
 
-    def apply_representation_to_example(self, x):
-        if self._standardize_raw:
-            self._standardize_data(x, 0)
-        for i, rep in enumerate(self._representations):
-            x = rep(x)
-            if self._standardize_all:
-                self._standardize_data(x, i + 1)
-        return x
-
     def append_representation(self, rep):
         self._representations.append(rep)
         self._standardization_mean.append(None)
@@ -60,6 +51,9 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
 
     def get_representations(self, as_sequential: bool = False):
         return SequentialRepresentation(self._representations) if as_sequential else self._representations
+
+    def get_last_representation(self):
+        return self._representations[-1]
 
     def _standardize_data(self, x, phase: int, redo_standardization: bool = False):
         if self._standardization_mean[phase] is None or redo_standardization:

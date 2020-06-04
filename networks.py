@@ -46,35 +46,35 @@ class SimpleNetwork(nn.Module):
 
 class SimpleConvNetwork(nn.Module):
     """
-    A FC neural network with one hidden layer and one output node
+    A conv neural network with one hidden layer and one output node
     """
     def __init__(self, input_shape: tuple, c: int, activation=ReLU, init_f=xavier_normal_, bias=False,
-                 k: int = 3, stride: int = 1, padding: int = 0, dilation: int = 1):
+                 k: int = 7, stride: int = 1, padding: int = 0, dilation: int = 1):
         super(SimpleConvNetwork, self).__init__()
-        self.input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
+        self._input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
         self._init_f = init_f
         self._bias = bias
 
         self._conv = nn.Conv2d(input_shape[0], c, k, stride, padding, dilation)
-        conv_output_shape = utils.conv_output_shape(input_shape[1], input_shape[2], c, k, stride, padding, dilation)
         self._activation = activation()
-        self._fc = Linear(utils.shape_to_size(conv_output_shape), 2, bias)
-        self._initialize_weights()
         self.to(utils.get_device())
 
+        self._initialize_weights()
+
     def forward(self, x):
-        x = x.reshape(self.input_shape)
+        if isinstance(x, np.ndarray):
+            x = from_numpy(x).float()
+        if len(x.shape) == 3:
+            x = x.reshape((1, *x.shape))
         x = self._conv(x)
-        x = self._activation(x).flatten()
-        x = self._fc(x)
+        x = self._activation(x)
+        x = nn.functional.adaptive_avg_pool2d(x, 1).mean()
         return x
 
     def _initialize_weights(self):
         self._init_f(self._conv.weight)
-        self._init_f(self._fc.weight)
         if self._bias:
             zeros_(self._conv.bias)
-            zeros_(self._fc.bias)
 
 
 class FCNetwork(nn.Module):
@@ -170,7 +170,6 @@ class ConvNetwork(nn.Module):
                 zeros_(layer.bias)
 
 
-
 def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=64, loss_f=BCELoss,
                   optimizer=Adam, lr=0.001, y_postprocessing=utils.y_to_one_hot, weight_decay: float = 0.0000001):
     print("Started training")
@@ -201,3 +200,7 @@ def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=6
             print("test performance is {}".format(performance))
 
 
+def get_network(network_type):
+    networks_dict = {"simple": SimpleNetwork, "conv": SimpleConvNetwork}  # TODO: write get network function
+    assert network_type.lower() in networks_dict, "Network type {} not supported".format(network_type)
+    return networks_dict[network_type]

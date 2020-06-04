@@ -26,10 +26,12 @@ def normalize_vectors(x: np.ndarray):
     return np.divide(x.T, mags).T
 
 
-def flatten_data(data: np.ndarray):
+def flatten_data(data, is_tensor=False):
     last_dim = 1
     for i in range(1, len(data.shape)):
         last_dim *= data.shape[i]
+    if is_tensor:
+        return data.view(data.shape[0], last_dim)
     return np.reshape(data, (data.shape[0], last_dim))
 
 
@@ -88,3 +90,24 @@ def get_last_dim_of_conv_network(layers: int, dim: int, pooling: bool):
         if pooling:
             dim = dim // 2
     return dim
+
+
+def pad_image(img, h, w):
+    #  in case when you have odd number
+    top_pad = np.floor((h - img.shape[0]) / 2).astype(np.uint16)
+    bottom_pad = np.ceil((h - img.shape[0]) / 2).astype(np.uint16)
+    right_pad = np.ceil((w - img.shape[1]) / 2).astype(np.uint16)
+    left_pad = np.floor((w - img.shape[1]) / 2).astype(np.uint16)
+    return np.copy(np.pad(img, ((top_pad, bottom_pad), (left_pad, right_pad), (0, 0)),
+                          mode='constant', constant_values=0))
+
+
+def image_to_patches(im, patch_size):
+    c, h, w = im.shape
+    patch_r = patch_size // 2
+    # this saves spatial relations
+    patches = np.zeros((h - 2 * patch_r, w - 2 * patch_r, c, patch_size, patch_size))
+    for i in range(patches.shape[0]):
+        for j in range(patches.shape[1]):
+            patches[i, j, ...] = im[:, i:i + patch_size, j:j + patch_size]
+    return patches
