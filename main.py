@@ -3,16 +3,16 @@ import rounds, data_loading, evaluation, svm, networks
 
 import numpy as np
 
-n = 10000
+n = None
 d = 50
-dim_red = d
+dim_red = None
 
-q = 50
+q = 30
 
 
 mnist_dataset = data_loading.RepresentableMnist([], normalize_raw=True, normalize_reps=True)
-output_dim = rounds.add_network_to_vector_rounds(2, mnist_dataset, d, q, n, dim_red, network_type="simple")
-# output_dim = rounds.add_network_to_vector_rounds(2, mnist_dataset, (1, 1, 28, 28), q, n, network_type="conv")
+# output_dim = rounds.add_network_to_vector_rounds(5, mnist_dataset, d, q, n, dim_red, network_type="simple")
+output_dim = rounds.add_network_to_vector_rounds(2, mnist_dataset, (1, 1, 28, 28), q, n, network_type="conv")
 # TODO: notice that we would get d=q bug here in the 2nd round!!!!!!! fix!!!!!!
 
 print("Finished getting Representations")

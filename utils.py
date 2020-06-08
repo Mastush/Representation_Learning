@@ -38,7 +38,7 @@ def flatten_data(data, is_tensor=False):
 def standardize_data(x):
     mean, std = x.mean(axis=0), x.std(0)
     x -= mean
-    x /= (std + EPSILON)
+    x /= std + EPSILON
     return x, mean, (std + EPSILON)
 
 
@@ -111,3 +111,12 @@ def image_to_patches(im, patch_size):
         for j in range(patches.shape[1]):
             patches[i, j, ...] = im[:, i:i + patch_size, j:j + patch_size]
     return patches
+
+
+def get_activation_gradient(activation, x, return_ndarray=False):
+    x = torch.from_numpy(x).to(get_device())
+    x.requires_grad = True
+    y = activation(x).sum()
+    y.backward()
+    return safe_tensor_to_ndarray(x.grad) if return_ndarray else x.grad
+

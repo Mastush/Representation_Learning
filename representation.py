@@ -45,11 +45,25 @@ def get_net_rep(network, input_shape=None) -> list:
         raise TypeError("Network type {} not supported".format(network.__name__))
 
 
-class SimpleNetworkGradientRepresentation(BaseRepresentation):  # TODO: this can be simplified to use closed forms
+class SimpleNetworkGradientRepresentation(BaseRepresentation):
     def __init__(self, model: SimpleNetwork):
         self._model = model.float()
 
-    def __call__(self, x, return_ndarray=True):
+    def _closed_form_call(self, x):
+        W = utils.safe_tensor_to_ndarray(self._model._layer1.weight)  # TODO: save these as self.X
+        V = utils.safe_tensor_to_ndarray(self._model._layer2.weight)
+        activation = self._model._activation
+        Wx = np.matmul(W, x)
+        y = utils.get_activation_gradient(activation, Wx)
+        y = utils.safe_tensor_to_ndarray(y)
+        y = np.outer(y, x)
+        y = np.multiply(V, y.T).T
+        return y
+
+    def __call__(self, x, return_ndarray=True, closed_form=True):
+        if closed_form:
+            return self._closed_form_call(x)
+
         self._model.zero_grad()
         self._model.train()
         if not isinstance(x, torch.Tensor):
@@ -77,11 +91,12 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this
     def get_kernel_size(self):
         return self.get_output_shape()[-1]
 
-    def __call__(self, x, return_ndarray=True, single_example=False):
+    def _closed_form_call(self, x):  # TODO: REDO
+            return 1
+
+    def __call__(self, x, return_ndarray=True, closed_form=False):
         self._model.zero_grad()
         self._model.train()
-        # if single_example:
-        #     x = np.reshape(x, (1, 1, *self.input_shape))
         if x.size == utils.shape_to_size(self.input_shape):
             x = np.reshape(x, self.input_shape)
         else:
@@ -97,6 +112,9 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this
             side_size = int(side_size)
             x = np.reshape(x, (b, c, side_size, side_size))
 
+        if closed_form:
+            return self._closed_form_call(x)
+
         if not isinstance(x, torch.Tensor):
             x = torch.from_numpy(x).float().to(utils.get_device())
         y = self._model(x)
@@ -104,7 +122,7 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this
         gradient_matrix = utils.safe_tensor_to_ndarray(self._model._conv.weight.grad) if \
             return_ndarray else self._model._conv.weight.grad
 
-        return np.squeeze(gradient_matrix)
+        return gradient_matrix
 
 
 class PatchedSimpleConvGradRepresentation(BaseRepresentation):

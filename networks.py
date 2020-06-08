@@ -25,14 +25,14 @@ class SimpleNetwork(nn.Module):
         self._bias = bias
 
         self._layer1 = Linear(d, q, bias)
-        self._activation1 = activation()
+        self._activation = activation()
         self._layer2 = Linear(q, 1, bias)
         self._initialize_weights()
         self.to(utils.get_device())
 
     def forward(self, x):
         x = self._layer1(x)
-        x = self._activation1(x)
+        x = self._activation(x)
         x = self._layer2(x)
         return x
 
