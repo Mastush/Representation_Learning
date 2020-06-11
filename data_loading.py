@@ -7,14 +7,15 @@ import utils
 from representation import SequentialRepresentation
 
 
-class RepresentableDataset:  # TODO: allow standartization after each rep?
+class RepresentableDataset:
+    """This is a base class for a dataset which will go through a chain of representations"""
     def __init__(self, representations: list, standardize_raw: bool = True, standardize_reps: bool = True,
                  normalize_raw: bool = False, normalize_reps: bool = False):
         self._representations = representations
         self._standardization_mean = [None] * (len(representations) + 1)
         self._standardization_std = [None] * (len(representations) + 1)
         self._standardize_raw = standardize_raw
-        self._standardize_all = standardize_reps
+        self._standardize_reps = standardize_reps
         self._normalize_raw = normalize_raw
         self._normalize_reps = normalize_reps
 
@@ -23,14 +24,19 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
         """ If n is None, then this should return an entire dataset """
         pass
 
+    @abstractmethod
+    def get_batch_generators(self, batch_size):
+        pass
+
     def apply_representations_to_data(self, x):
+        """Iteratively applies standardization and representations to the data"""
         if self._standardize_raw:
             self._standardize_data(x, 0)
         if self._normalize_raw:
             x = utils.normalize_vectors(x)
         for i, rep in enumerate(self._representations):
             x = np.asarray([rep(x[j]) for j in range(x.shape[0])])  # TODO: allow vectorized way
-            if self._standardize_all:
+            if self._standardize_reps:
                 self._standardize_data(x, i + 1)
             if self._normalize_reps:
                 x = utils.normalize_vectors(x)
@@ -70,16 +76,19 @@ class RepresentableDataset:  # TODO: allow standartization after each rep?
     def set_standardize_raw(self, true_or_false: bool):
         self._standardize_raw = true_or_false
 
-    def set_standardize_all(self, true_or_false: bool):
-        self._standardize_all = true_or_false
+    def set_standardize_reps(self, true_or_false: bool):
+        self._standardize_reps = true_or_false
 
 
 class RepresentableVectorDataset(RepresentableDataset):
-    def __init__(self, representations: list, standardize_raw: bool = True, standardize_reps: bool = True,
-                 normalize_raw: bool = False, normalize_reps: bool = False):
+    """A representable dataset whose data are vectors"""
+    def __init__(self, representations: list, n_train: int, n_test: int, standardize_raw: bool = True,
+                 standardize_reps: bool = True, normalize_raw: bool = False, normalize_reps: bool = False):
         super(RepresentableVectorDataset, self).__init__(representations, standardize_raw, standardize_reps,
-                                                         standardize_raw, standardize_reps)
+                                                         normalize_raw, normalize_reps)
         self._PCA = None
+        self._n_train = n_train
+        self._n_test = n_test
 
     def _make_and_fit_pca(self, x, d):
         if d is not None and self._PCA is None:
@@ -116,14 +125,18 @@ class RepresentableVectorDataset(RepresentableDataset):
             y = y_preprocessing(y)
         return x, y
 
+    @abstractmethod
+    def get_batch_generators(self, batch_size):
+        pass
+
 
 class RepresentableMnist(RepresentableVectorDataset):
-    def __init__(self, representations: list, normalize: bool = False,
+    def __init__(self, representations: list,
                  standardize_raw: bool = True, standardize_reps: bool = True,
                  normalize_raw: bool = False, normalize_reps: bool = False):
-        super(RepresentableMnist, self).__init__(representations, standardize_raw, standardize_reps,
-                                                 normalize_raw, normalize_reps)
         x, y = fetch_openml('mnist_784', version=1, return_X_y=True)
+        super(RepresentableMnist, self).__init__(representations, 60000, 10000, standardize_raw, standardize_reps,
+                                                 normalize_raw, normalize_reps)
         THRESHOLD = 60000
         self._training_ims = x[:THRESHOLD]
         self._training_labels = y[:THRESHOLD]
@@ -147,3 +160,23 @@ class RepresentableMnist(RepresentableVectorDataset):
         return self.get_examples(self._test_ims, self._test_labels, n, apply_representations,
                                  dim_reduction, shuffle, self._y_preprocessing)
 
+    def get_batch_generators(self, batch_size):
+        def train_batch_generator():
+            i = 0
+            batch_x, batch_y = None, None
+            while i < self._n_train:
+                batch_x, batch_y = self.get_examples(self._training_ims[i:i + batch_size],
+                                                     self._training_labels[i:i + batch_size])
+                i += batch_size
+            yield batch_x, batch_y
+
+        def test_batch_generator():
+            i = 0
+            batch_x, batch_y = None, None
+            while i < self._n_test:
+                batch_x, batch_y = self.get_examples(self._test_ims[i:i + batch_size],
+                                                     self._test_labels[i:i + batch_size])
+                i += batch_size
+            yield batch_x, batch_y
+
+        return train_batch_generator(), test_batch_generator()

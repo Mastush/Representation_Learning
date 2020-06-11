@@ -24,8 +24,10 @@ def get_linear_separator(x: np.ndarray, y: np.ndarray, return_classifier=True,
     except TypeError:
         svm_classifier = svm_classifier(alpha=alpha, max_iter=max_iter, verbose=verbose, tol=tol)
     svm_classifier.fit(x, y)
+
+    # TODO: allow partial training
+
+
     if return_classifier:
         return SVMWrapper(svm_classifier)
     return svm_classifier.coef_
-
-# TODO: implement partial training

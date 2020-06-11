@@ -9,6 +9,7 @@ import utils
 
 
 class BaseRepresentation(ABC):
+    """A base class for representations"""
     @abstractmethod
     def __call__(self, x, *args):
         pass
@@ -35,6 +36,7 @@ class SequentialRepresentation(BaseRepresentation):
 
 
 def get_net_rep(network, input_shape=None) -> list:
+    """Returns a list of relevant nn representations"""
     if isinstance(network, SimpleNetwork):
         return [SimpleNetworkGradientRepresentation(network)]
     if isinstance(network, SimpleConvNetwork):
@@ -85,7 +87,7 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this
         self.input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
 
     def get_output_shape(self, x=None):
-        weight = np.squeeze(utils.safe_tensor_to_ndarray(self._model._conv.weight))
+        weight = utils.safe_tensor_to_ndarray(self._model._conv.weight)
         return weight.shape
 
     def get_kernel_size(self):

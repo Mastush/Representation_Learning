@@ -14,12 +14,6 @@ class SimpleNetwork(nn.Module):
     A FC neural network with one hidden layer and one output node
     """
     def __init__(self, d: int, q: int, activation=ReLU, init_f=xavier_normal_, bias=False):
-        """
-        :param d: Dimension of the input data
-        :param q: Number of hidden neurons in layer 1
-        :param activation: Activation function
-        :param init_f: Initialization function
-        """
         super(SimpleNetwork, self).__init__()
         self._init_f = init_f
         self._bias = bias
@@ -49,7 +43,7 @@ class SimpleConvNetwork(nn.Module):
     A conv neural network with one hidden layer and one output node
     """
     def __init__(self, input_shape: tuple, c: int, activation=ReLU, init_f=xavier_normal_, bias=False,
-                 k: int = 7, stride: int = 1, padding: int = 0, dilation: int = 1):
+                 k: int = 3, stride: int = 1, padding: int = 0, dilation: int = 1):
         super(SimpleConvNetwork, self).__init__()
         self._input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
         self._init_f = init_f
