@@ -1,7 +1,6 @@
 import representation, svm, evaluation
 from data_loading import RepresentableVectorDataset
 import networks
-import numpy as np
 
 
 def is_convolutional(nn):

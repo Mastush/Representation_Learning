@@ -1,5 +1,5 @@
 from sklearn.linear_model import SGDClassifier
-from sklearn.svm import LinearSVC, SVC
+from sklearn.svm import SVC
 from lightning.classification import SDCAClassifier
 import numpy as np
 

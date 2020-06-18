@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from torch.nn import BCELoss, Module
 import torch
 import numpy as np
-from skimage.util import view_as_blocks
 
 from networks import SimpleNetwork, SimpleConvNetwork
 import utils
@@ -29,7 +28,7 @@ class SequentialRepresentation(BaseRepresentation):
         return x
 
     def get_output_shape(self, x=None):
-        return self._sub_representations[-1].get_output_shape()
+        return self._sub_representations[-1].get_output_shape(x)
 
 
 # ---------- Network Representations ---------- #

@@ -79,6 +79,10 @@ class RepresentableDataset:
     def set_standardize_reps(self, true_or_false: bool):
         self._standardize_reps = true_or_false
 
+    @abstractmethod
+    def get_raw_input_shape(self, conv=False):
+        pass
+
 
 class RepresentableVectorDataset(RepresentableDataset):
     """A representable dataset whose data are vectors"""
@@ -180,3 +184,7 @@ class RepresentableMnist(RepresentableVectorDataset):
             yield batch_x, batch_y
 
         return train_batch_generator(), test_batch_generator()
+
+    @abstractmethod
+    def get_raw_input_shape(self, conv=False):
+        return (1, 1, 28, 28) if conv else 784
