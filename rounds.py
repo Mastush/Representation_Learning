@@ -1,4 +1,4 @@
-import representation, svm, evaluation
+import representation, svm
 from data_loading import RepresentableVectorDataset
 import networks
 

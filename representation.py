@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from torch.nn import BCELoss, Module
 import torch
 import numpy as np
 

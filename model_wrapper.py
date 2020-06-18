@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from sklearn.linear_model import SGDClassifier
 from sklearn.base import BaseEstimator
 import numpy as np
 

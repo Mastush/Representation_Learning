@@ -1,5 +1,4 @@
 import numpy as np
-import torch
 
 
 def zero_one_loss(pred, truth):

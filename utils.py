@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 
 
 EPSILON = 0.0000001
