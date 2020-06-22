@@ -118,4 +118,3 @@ def get_activation_gradient(activation, x, return_ndarray=False):
     y = activation(x).sum()
     y.backward()
     return safe_tensor_to_ndarray(x.grad) if return_ndarray else x.grad
-

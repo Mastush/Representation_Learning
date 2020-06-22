@@ -46,16 +46,9 @@ def get_arguments():
     return args
 
 
-def get_dataset(dataset_str, normalize_raw, normalize_reps):
-    if dataset_str == 'mnist':
-        return data_loading.RepresentableMnist([], False, False, normalize_raw, normalize_reps)
-    else:
-        raise ValueError("Dataset {} not supported".format(dataset_str))
-
-
 def main():
     args = get_arguments()
-    dataset = get_dataset(args.dataset, args.normalize_raw, args.normalize_reps)
+    dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, args.normalize_reps)
 
     print("Collected arguments and raw dataset.")
 

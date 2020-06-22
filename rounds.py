@@ -12,7 +12,7 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
                                              max_iter: int, alpha: float,
                                              dim_reduction: int = None, network_type: str = "simple",
                                              return_output_dim: bool = True):
-    network_class = networks.get_network(network_type)
+    network_class = networks.get_network_for_reps(network_type)
     network = network_class(input_shape, q)
     nn_reps = representation.get_net_rep(network, input_shape=input_shape)
     dataset.append_representation(nn_reps[0])

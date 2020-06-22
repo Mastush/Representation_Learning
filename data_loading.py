@@ -188,3 +188,10 @@ class RepresentableMnist(RepresentableVectorDataset):
     @abstractmethod
     def get_raw_input_shape(self, conv=False):
         return (1, 1, 28, 28) if conv else 784
+
+
+def get_dataset(dataset_str, normalize_raw, normalize_reps):
+    if dataset_str == 'mnist':
+        return RepresentableMnist([], False, False, normalize_raw, normalize_reps)
+    else:
+        raise ValueError("Dataset {} not supported".format(dataset_str))

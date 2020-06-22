@@ -1,4 +1,5 @@
 import numpy as np
+import svm
 
 
 def zero_one_loss(pred, truth):
@@ -18,7 +19,10 @@ def mse(pred, truth):
 def evaluate_model(model, x, y, eval_f=accuracy, pred_postprocessing=None, out_dim: int = 1):
     x = np.asarray(x)
     y = np.asarray(y)
-    pred = np.asarray([model(x[i], single_example=True) for i in range(y.shape[0])])  # TODO: write separate func for getting pred
+    if isinstance(model, svm.SVMWrapper):
+        pred = np.asarray([model(x[i], single_example=True) for i in range(y.shape[0])])
+    else:
+        pred = np.asarray([model(x[i]) for i in range(y.shape[0])])  # TODO: write separate func for getting pred, this is bad for networks
     try:
         new_pred = np.zeros((pred.size, out_dim))
         for i in range(pred.shape[0]):
