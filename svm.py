@@ -27,7 +27,6 @@ def get_linear_separator(x: np.ndarray, y: np.ndarray, return_classifier=True,
 
     # TODO: allow partial training
 
-
     if return_classifier:
         return SVMWrapper(svm_classifier)
     return svm_classifier.coef_

@@ -43,7 +43,7 @@ class SimpleConvNetwork(nn.Module):
     A conv neural network with one hidden layer and one output node
     """
     def __init__(self, input_shape: tuple, c: int, activation=ReLU, init_f=xavier_normal_, bias=False,
-                 k: int = 3, stride: int = 1, padding: int = 0, dilation: int = 1):
+                 k: int = 7, stride: int = 1, padding: int = 0, dilation: int = 1):
         super(SimpleConvNetwork, self).__init__()
         self._input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
         self._init_f = init_f

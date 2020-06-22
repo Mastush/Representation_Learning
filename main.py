@@ -19,11 +19,29 @@ def get_arguments():
                         default=False, help="Whether or not to normalize the raw datapoints.")
     parser.add_argument('--normalize_reps', default=False, action='store_true',
                         help="Whether or not to normalize after each representation.")
+    parser.add_argument('-m', '--max_iter_optimization', nargs='+', type=int, default=[3000],
+                        help="The maximum number of iterations for optimization per round.")
+    parser.add_argument('-me', '--max_iter_evaluation', type=int, default=3000,
+                        help="The maximum number of iterations for evaluation at the end.")
+    parser.add_argument('-a', '--alpha_optimization', nargs='+', type=float, default=[0.000000001],
+                        help="Regularization coefficient for optimization per round.")
+    parser.add_argument('-ae', '--alpha_evaluation', type=float, default=0.000000001,
+                        help="Regularization coefficient for evaluation at the end.")
     args = parser.parse_args()
 
     if args.network_type == 'conv' and args.dim_red is not None:
         print("Dimensionality reduction is not used for convolutional networks!")
         args.dim_red = None
+
+    if len(args.max_iter_optimization) == 1:
+        args.max_iter_optimization = [*args.max_iter_optimization] * args.rounds
+    elif len(args.max_iter_optimization) != args.rounds:
+        raise ValueError("max_iter_optimization should have either 1 value or the same as the number of rounds!")
+
+    if len(args.alpha_optimization) == 1:
+        args.alpha_optimization = [*args.alpha_optimization] * args.rounds
+    elif len(args.alpha_optimization) != args.rounds:
+        raise ValueError("alpha_optimization should have either 1 value or the same as the number of rounds!")
 
     return args
 
@@ -43,11 +61,13 @@ def main():
 
     if args.network_type == 'simple':
         input_shape = args.dim_red if args.dim_red is not None else dataset.get_raw_input_shape()
-        rounds.add_network_to_vector_rounds(args.rounds, dataset, input_shape, args.neurons, args.n_train,
+        rounds.add_network_to_vector_rounds(args.rounds, dataset, input_shape, args.neurons,
+                                            args.max_iter_optimization, args.alpha_optimization, args.n_train,
                                             args.dim_red, network_type='simple')
     elif args.network_type == 'conv':
         input_shape = dataset.get_raw_input_shape(True)
-        rounds.add_network_to_vector_rounds(args.rounds, dataset, input_shape, args.neurons, args.n_train,
+        rounds.add_network_to_vector_rounds(args.rounds, dataset, input_shape, args.neurons,
+                                            args.max_iter_optimization, args.alpha_optimization, args.n_train,
                                             None, network_type='conv')
     else:
         raise ValueError("Network type {} not supported".format(args.network_type))
@@ -60,7 +80,8 @@ def main():
 
     print("Getting final linear separator")
 
-    w = svm.get_linear_separator(x, y, type_of_classifier='sdca', verbose=2, alpha=0.0001, max_iter=1000)
+    w = svm.get_linear_separator(x, y, type_of_classifier='sdca', verbose=2, alpha=args.alpha_evaluation,
+                                 max_iter=args.max_iter_evaluation)
 
     performance = evaluation.evaluate_model(w, x, y)
     print("train performance is {}".format(performance))
