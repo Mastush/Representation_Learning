@@ -85,6 +85,10 @@ def main_nn():
     else:  # meaning args.network_type == 'conv'
         input_shape = dataset.get_raw_input_shape(True)
         model = ConvNetwork(input_shape, args.neurons, args.layers)
+
+    model.to(utils.get_device())
+    print("Model device is {}".format(utils.get_device()))
+
     x, y = dataset.get_training_examples(args.n_train, False, args.dim_red if args.network_type == 'simple' else None)
     x_test, y_test = dataset.get_test_examples(args.n_test, False,
                                                args.dim_red if args.network_type == 'simple' else None)
