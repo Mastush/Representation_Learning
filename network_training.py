@@ -54,12 +54,26 @@ def get_network_training_args():
     parser.add_argument('-b', '--batch_size', type=int, default=16, help="Number of examples per batch")
     parser.add_argument('--normalize_raw', action='store_true',
                         default=False, help="Whether or not to normalize the raw datapoints.")
+    parser.add_argument('-lr', '--learning_rate', type=float, default=0.001, help="Learning rate for network training")
+    parser.add_argument('-o', '--optimizer', type=str, default="adam",
+                        help="The type of optimizer for network training")
+    parser.add_argument('-w', '--weight_decay', type=float, default=0.0000001,
+                        help="Coefficient for weight decay in training")
     args = parser.parse_args()
 
     if args.network_type == 'conv' and args.dim_red is not None:
         print("Dimensionality reduction is not used for convolutional networks!")
         args.dim_red = None
+
+    args.optimizer = get_optimizer(args.optimizer)
+
     return args
+
+
+def get_optimizer(opt_str):
+    optimizer_dict = {"adam": Adam, "adagrad": Adagrad, "sgd": SGD}
+    assert opt_str.lower() in optimizer_dict, "Optimizer of type {} not supported".format(opt_str)
+    return optimizer_dict[opt_str.lower()]
 
 
 def main_nn():
@@ -74,7 +88,8 @@ def main_nn():
     x, y = dataset.get_training_examples(args.n_train, False, args.dim_red if args.network_type == 'simple' else None)
     x_test, y_test = dataset.get_test_examples(args.n_test, False,
                                                args.dim_red if args.network_type == 'simple' else None)
-    train_network(model, x, y, x_test, y_test, args.epochs, args.batch_size)
+    train_network(model, x, y, x_test, y_test, args.epochs, args.batch_size, optimizer=args.optimizer,
+                  lr=args.learning_rate, weight_decay=args.weight_decay)
 
 
 if __name__ == '__main__':

@@ -100,7 +100,7 @@ class FCNetwork(nn.Module):
         self.float()
 
     def forward(self, x):
-        x = from_numpy(x).float()
+        x = from_numpy(x).float().to(utils.get_device())
         for i in range(len(self._fc_layers)):
             x = self._fc_layers[i](x)
             x = self._activation_layers[i](x)
@@ -142,10 +142,11 @@ class ConvNetwork(nn.Module):
         self._fc = Linear(last_height * last_width * last_c, 2, bias)
 
         self._softmax = Softmax()
+        self.to(utils.get_device())
 
     def forward(self, x):
         x = x.reshape((x.shape[0], *self._input_shape[1:])) if len(x.shape) > 1 else x.reshape(self._input_shape)
-        x = from_numpy(x).float()
+        x = from_numpy(x).float().to(utils.get_device())
         for i in range(len(self._conv_layers)):
             x = self._conv_layers[i](x)
             if self._pooling:
