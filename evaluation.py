@@ -1,4 +1,6 @@
 import numpy as np
+import torch.nn as nn
+
 import svm
 
 
@@ -16,21 +18,23 @@ def mse(pred, truth):
     return np.mean((pred - truth) ** 2)
 
 
-def evaluate_model(model, x, y, eval_f=accuracy, pred_postprocessing=None, out_dim: int = 1):
+def evaluate_model(model, x, y, eval_f=accuracy, pred_postprocessing=None, out_dim: int = 1, batch_size: int = None):
     x = np.asarray(x)
     y = np.asarray(y)
-    if isinstance(model, svm.SVMWrapper):
+    if isinstance(model, nn.Module):
+        model.eval()
+        batch_size = 1 if batch_size is None else batch_size
+        pred = None
+        for i in range((x.shape[0] // batch_size) + 1):
+            x_for_network = x[i * batch_size:(i + 1) * batch_size]
+            if x_for_network.size > 0:
+                batch_pred = model(x_for_network).detach().numpy()
+                pred = batch_pred if pred is None else np.concatenate((pred, batch_pred))
+    else:  # then isinstance(model, svm.SVMWrapper) == True
         pred = np.asarray([model(x[i], single_example=True) for i in range(y.shape[0])])
-    else:
-        pred = np.asarray([model(x[i]) for i in range(y.shape[0])])  # TODO: write separate func for getting pred, this is bad for networks
-    try:
-        new_pred = np.zeros((pred.size, out_dim))
-        for i in range(pred.shape[0]):
-            new_pred[i] = pred[i].detach().numpy()
-        pred = new_pred
-    except:
-        pass
+
     if pred_postprocessing is not None:
         pred = pred_postprocessing(pred)
+
     return eval_f(pred, y)
 

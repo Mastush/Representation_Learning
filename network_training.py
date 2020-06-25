@@ -31,11 +31,13 @@ def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=6
             loss = loss_f(pred, from_numpy(y_for_network).float())
             loss.backward()
             optimizer.step()
-        performance = evaluation.evaluate_model(model, x, y, pred_postprocessing=utils.softmax_to_one_hot, out_dim=2)
+        performance = evaluation.evaluate_model(model, x, y, pred_postprocessing=utils.softmax_to_one_hot, out_dim=2,
+                                                batch_size=batch_size)
         print("train performance is {}".format(performance))
         print("Finished epoch {}".format(epoch))
         if x_test is not None:
-            performance = evaluation.evaluate_model(model, x_test, y_test, pred_postprocessing=utils.softmax_to_one_hot, out_dim=2)
+            performance = evaluation.evaluate_model(model, x_test, y_test, pred_postprocessing=utils.softmax_to_one_hot,
+                                                    out_dim=2, batch_size=batch_size)
             print("test performance is {}".format(performance))
 
 
