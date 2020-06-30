@@ -1,6 +1,7 @@
 import numpy as np
 import torch.nn as nn
 
+import utils
 import svm
 
 
@@ -28,7 +29,7 @@ def evaluate_model(model, x, y, eval_f=accuracy, pred_postprocessing=None, out_d
         for i in range((x.shape[0] // batch_size) + 1):
             x_for_network = x[i * batch_size:(i + 1) * batch_size]
             if x_for_network.size > 0:
-                batch_pred = model(x_for_network).detach().numpy()
+                batch_pred = utils.safe_tensor_to_ndarray(model(x_for_network))
                 pred = batch_pred if pred is None else np.concatenate((pred, batch_pred))
     else:  # then isinstance(model, svm.SVMWrapper) == True
         pred = np.asarray([model(x[i], single_example=True) for i in range(y.shape[0])])
