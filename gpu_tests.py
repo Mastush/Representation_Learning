@@ -30,8 +30,12 @@ class FCNetwork(nn.Module):
         self._activation_layers = []
 
         for i in range(layers):
-            self._fc_layers.append(Linear(d if i == 0 else q, q, bias=bias))
-            self._activation_layers.append(activation())
+            layer = Linear(d if i == 0 else q, q, bias=bias)
+            activation_layer = activation()
+            self._fc_layers.append(layer)
+            self._activation_layers.append(activation_layer)
+            self.add_module("Dense layer {}".format(i), layer)
+            self.add_module("Activation layer {}".format(i), activation_layer)
         self._last_fc = Linear(q, 2)
         self._softmax = Softmax()
 
