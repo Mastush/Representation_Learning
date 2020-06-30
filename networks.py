@@ -116,8 +116,8 @@ class FCNetwork(nn.Module):
 
 
 class ConvNetwork(nn.Module):
-    def __init__(self, input_shape: tuple, c: int, layers: int, activation=ReLU,
-                 init_f=xavier_normal_, bias=False, pooling=True):
+    def __init__(self, input_shape: tuple, c: int, layers: int, kernel_size: int = 3, activation=ReLU,
+                 init_f=xavier_normal_, bias: bool = False, pooling: bool = True, auto_pad: bool = False):
         super(ConvNetwork, self).__init__()
         self._init_f = init_f
         self._bias = bias
@@ -131,14 +131,15 @@ class ConvNetwork(nn.Module):
         last_c = input_shape[1]
         next_c = c
         for i in range(layers):
-            self._conv_layers.append(nn.Conv2d(last_c, next_c, 3))
+            self._conv_layers.append(nn.Conv2d(last_c, next_c, kernel_size,
+                                               padding=kernel_size // 2 if auto_pad else 0))
             last_c = next_c
             next_c *= 2
             if pooling:
                 self._pooling_layers.append(nn.MaxPool2d(2))
             self._activation_layers.append(activation())
-        last_height = utils.get_last_dim_of_conv_network(layers, input_shape[-2], pooling)
-        last_width = utils.get_last_dim_of_conv_network(layers, input_shape[-1], pooling)
+        last_height = utils.get_last_dim_of_conv_network(layers, input_shape[-2], pooling, kernel_size, auto_pad)
+        last_width = utils.get_last_dim_of_conv_network(layers, input_shape[-1], pooling, kernel_size, auto_pad)
         self._fc = Linear(last_height * last_width * last_c, 2, bias)
 
         self._softmax = Softmax()

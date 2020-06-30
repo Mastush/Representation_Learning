@@ -83,9 +83,10 @@ def softmax_to_one_hot(y):
     return one_hot_y
 
 
-def get_last_dim_of_conv_network(layers: int, dim: int, pooling: bool):
+def get_last_dim_of_conv_network(layers: int, dim: int, pooling: bool, kernel_size: int, padded: bool):
     for _ in range(layers):
-        dim = dim - 2
+        if not padded:
+            dim = dim - kernel_size // 2
         if pooling:
             dim = dim // 2
     return dim
@@ -118,3 +119,13 @@ def get_activation_gradient(activation, x, return_ndarray=False):
     y = activation(x).sum()
     y.backward()
     return safe_tensor_to_ndarray(x.grad) if return_ndarray else x.grad
+
+
+def get_multiclass_to_binary_truth_f(n_classes):
+
+    def multiclass_to_binary_truth(truth):
+        truth = (truth.astype(np.int) > n_classes // 2).astype(np.int)
+        truth[truth == 0] = -1
+        return truth
+
+    return multiclass_to_binary_truth

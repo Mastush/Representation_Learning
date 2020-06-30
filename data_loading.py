@@ -114,7 +114,7 @@ class RepresentableVectorDataset(RepresentableDataset):
 
     def get_examples(self, x, y, n: int = None, apply_representations: bool = True,
                      dim_reduction: int = None, shuffle: bool = False, y_preprocessing=None):
-        x = np.copy(x)
+        x = np.copy(x)  #TODO: check if I can remove these copies
         y = np.copy(y)
         if self._PCA is None and dim_reduction is not None:  # TODO: allow redoing PCA
             self._make_and_fit_pca(x, dim_reduction)
@@ -148,11 +148,7 @@ class RepresentableMnist(RepresentableVectorDataset):
         self._test_labels = y[THRESHOLD:]
         self._PCA = None
 
-        def mnist_to_binary_truth(truth):
-            truth = (truth.astype(np.int) > 4).astype(np.int)
-            truth[truth == 0] = -1
-            return truth
-        self._y_preprocessing = mnist_to_binary_truth
+        self._y_preprocessing = utils.get_multiclass_to_binary_truth_f(10)
 
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
                               dim_reduction: int = None, shuffle: bool = False):
