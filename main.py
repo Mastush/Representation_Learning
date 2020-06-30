@@ -1,4 +1,4 @@
-import rounds, data_loading, evaluation, svm
+import rounds, data_loading, evaluation, svm, utils
 
 import argparse
 
@@ -48,6 +48,7 @@ def get_arguments():
 
 def main():
     args = get_arguments()
+    utils.print_args(args)
     dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, args.normalize_reps)
 
     print("Collected arguments and raw dataset.")

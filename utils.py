@@ -129,3 +129,8 @@ def get_multiclass_to_binary_truth_f(n_classes):
         return truth
 
     return multiclass_to_binary_truth
+
+
+def print_args(args):
+    for key, val in args.__dict__.items():
+        print("{} = {}".format(key, val))

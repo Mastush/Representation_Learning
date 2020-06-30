@@ -93,6 +93,7 @@ def get_optimizer(opt_str):
 
 def main_nn():
     args = get_network_training_args()
+    utils.print_args(args)
     dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, False)
     if args.network_type == 'simple':
         d = args.dim_red if args.dim_red is not None else dataset.get_raw_input_shape()
