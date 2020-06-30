@@ -19,7 +19,7 @@ def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=6
     if y_postprocessing is not None:
         y = y_postprocessing(y)
         y_test = y_postprocessing(y_test)
-    y, y_test = y.astype(np.float).to(utils.get_device()), y_test.astype(np.float).to(utils.get_device())
+    y, y_test = y.astype(np.float), y_test.astype(np.float)
 
     loss_f = loss_f()
     optimizer = optimizer(model.parameters(), lr, weight_decay=weight_decay)
@@ -34,7 +34,7 @@ def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=6
                 print("batch {} of {}".format(i + 1, x.shape[0] // batch_size + 1))
             optimizer.zero_grad()
             pred = model(x_for_network)
-            loss = loss_f(pred, from_numpy(y_for_network).float())
+            loss = loss_f(pred, from_numpy(y_for_network).float().to(utils.get_device()))
             loss.backward()
             optimizer.step()
         train_performance = evaluation.evaluate_model(model, x, y, pred_postprocessing=utils.softmax_to_one_hot,
