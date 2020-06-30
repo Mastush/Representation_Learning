@@ -96,8 +96,8 @@ class FCNetwork(nn.Module):
         self._softmax = Softmax()
 
         self._initialize_weights()
-        self.to(utils.get_device())
         self.float()
+        self.to(utils.get_device())
 
     def forward(self, x):
         x = from_numpy(x).float().to(utils.get_device())
