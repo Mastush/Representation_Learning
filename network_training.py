@@ -19,7 +19,7 @@ def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=6
     if y_postprocessing is not None:
         y = y_postprocessing(y)
         y_test = y_postprocessing(y_test)
-    y, y_test = y.astype(np.float), y_test.astype(np.float)
+    y, y_test = y.astype(np.float).to(utils.get_device()), y_test.astype(np.float).to(utils.get_device())
 
     loss_f = loss_f()
     optimizer = optimizer(model.parameters(), lr, weight_decay=weight_decay)
