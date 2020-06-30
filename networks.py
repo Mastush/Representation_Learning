@@ -90,8 +90,12 @@ class FCNetwork(nn.Module):
         self._activation_layers = []
 
         for i in range(layers):
-            self._fc_layers.append(Linear(d if i == 0 else q, q, bias=bias))
-            self._activation_layers.append(activation())
+            layer = Linear(d if i == 0 else q, q, bias=bias)
+            activation_layer = activation()
+            self._fc_layers.append(layer)
+            self._activation_layers.append(activation_layer)
+            self.add_module("Dense layer {}".format(i), layer)
+            self.add_module("Activation layer {}".format(i), activation_layer)
         self._last_fc = Linear(q, 2)
         self._softmax = Softmax()
 
@@ -131,13 +135,18 @@ class ConvNetwork(nn.Module):
         last_c = input_shape[1]
         next_c = c
         for i in range(layers):
-            self._conv_layers.append(nn.Conv2d(last_c, next_c, kernel_size,
-                                               padding=kernel_size // 2 if auto_pad else 0))
+            layer = nn.Conv2d(last_c, next_c, kernel_size, padding=kernel_size // 2 if auto_pad else 0)
+            activation_layer = activation()
+            pooling_layer = nn.MaxPool2d(2)
+            self._conv_layers.append(layer)
             last_c = next_c
             next_c *= 2
             if pooling:
-                self._pooling_layers.append(nn.MaxPool2d(2))
-            self._activation_layers.append(activation())
+                self._pooling_layers.append(pooling_layer)
+            self._activation_layers.append(activation_layer)
+            self.add_module("Conv layer {}".format(i), layer)
+            self.add_module("Activation layer {}".format(i), activation_layer)
+            self.add_module("Pooling layer {}".format(i), pooling_layer)
         last_height = utils.get_last_dim_of_conv_network(layers, input_shape[-2], pooling, kernel_size, auto_pad)
         last_width = utils.get_last_dim_of_conv_network(layers, input_shape[-1], pooling, kernel_size, auto_pad)
         self._fc = Linear(last_height * last_width * last_c, 2, bias)
