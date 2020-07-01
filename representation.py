@@ -79,7 +79,7 @@ class SimpleNetworkGradientRepresentation(BaseRepresentation):
         return utils.safe_tensor_to_ndarray(self._model._layer1.weight.grad).shape
 
 
-class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this can be simplified to use closed forms
+class SimpleConvNetworkGradientRepresentation(BaseRepresentation):
     def __init__(self, model: SimpleConvNetwork, input_shape=None):
         self._model = model.float()
         self.input_shape = input_shape if len(input_shape) == 4 else (1, *input_shape)
@@ -116,8 +116,8 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):  # TODO: this
             return self._closed_form_call(x)
 
         if not isinstance(x, torch.Tensor):
-            x = torch.from_numpy(x).float().to(utils.get_device())
-        y = self._model(x)
+            x = torch.from_numpy(x).float()
+        y = self._model(x.to(utils.get_device()))
         y.backward()
         gradient_matrix = utils.safe_tensor_to_ndarray(self._model._conv.weight.grad) if \
             return_ndarray else self._model._conv.weight.grad

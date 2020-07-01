@@ -103,7 +103,7 @@ def main_nn():
         model = ConvNetwork(input_shape, args.neurons, args.layers, args.kernel_size, auto_pad=True)
 
     model.to(utils.get_device())
-    print("Model device is {}".format(utils.get_device()))
+    print("Model device is cuda?".format(next(model.parameters()).is_cuda))
 
     x, y = dataset.get_training_examples(args.n_train, False, args.dim_red if args.network_type == 'simple' else None)
     x_test, y_test = dataset.get_test_examples(args.n_test, False,

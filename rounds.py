@@ -1,6 +1,6 @@
 import representation, svm
 from data_loading import RepresentableVectorDataset
-import networks
+import networks, utils
 
 
 def is_convolutional(nn):
@@ -14,6 +14,9 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
                                              return_output_dim: bool = True):
     network_class = networks.get_network_for_reps(network_type)
     network = network_class(input_shape, q)
+
+    print("Round network device is cuda? {}".format(next(network.parameters()).is_cuda))
+
     nn_reps = representation.get_net_rep(network, input_shape=input_shape)
     dataset.append_representation(nn_reps[0])
     x, y = dataset.get_training_examples(n_train, dim_reduction=dim_reduction)
@@ -52,6 +55,7 @@ def add_network_to_vector_rounds(n_rounds: int, dataset: RepresentableVectorData
                                  return_output_dim: bool = True):
     output_dim = None
     for i in range(n_rounds):
+        print("Starting round {}".format(i + 1))
         output_dim = add_network_to_vector_representation_rep(dataset, input_shape if i == 0 else output_dim, q - i,
                                                               n_train, max_iter_list[i], alpha_list[i],
                                                               dim_reduction, network_type,
