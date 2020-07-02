@@ -48,7 +48,7 @@ class SimpleConvNetwork(nn.Module):
         self._init_f = init_f
         self._bias = bias
 
-        self._conv = nn.Conv2d(input_shape[0], c, k, stride, padding, dilation)
+        self._conv = nn.Conv2d(self._input_shape[1], c, k, stride, padding, dilation)
         self._activation = activation()
         self.to(utils.get_device())
 

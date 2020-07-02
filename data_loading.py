@@ -2,6 +2,8 @@ import numpy as np
 from abc import abstractmethod
 from sklearn.datasets import fetch_openml
 from sklearn.decomposition import PCA
+from torchvision.datasets import CIFAR10
+from torchvision.transforms import ToTensor
 
 import utils
 from representation import SequentialRepresentation
@@ -97,10 +99,10 @@ class RepresentableVectorDataset(RepresentableDataset):
     def _make_and_fit_pca(self, x, d):
         if d is not None and self._PCA is None:
             self._PCA = PCA(d)
-            self._PCA.fit(x, None)
+            self._PCA.fit(utils.flatten_data(x), None)
 
     def _apply_pca(self, x, d: int=None):
-        return x if x.shape[-1] == d else self._PCA.transform(x)
+        return x if x.shape[-1] == d else self._PCA.transform(utils.flatten_data(x))
 
     @abstractmethod
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
@@ -186,8 +188,63 @@ class RepresentableMnist(RepresentableVectorDataset):
         return (1, 1, 28, 28) if conv else 784
 
 
+class RepresentableCIFAR10(RepresentableVectorDataset):
+    def __init__(self, representations: list,
+                 standardize_raw: bool = True, standardize_reps: bool = True,
+                 normalize_raw: bool = False, normalize_reps: bool = False):
+        super(RepresentableCIFAR10, self).__init__(representations, 50000, 10000, standardize_raw, standardize_reps,
+                                                 normalize_raw, normalize_reps)
+
+        train_set = CIFAR10(root='./data', train=True, download=True, transform=ToTensor())
+        self._training_ims, self._training_labels = utils.get_all_data_from_pytorch_dataset(train_set)
+
+        test_set = CIFAR10(root='./data', train=False, download=True, transform=ToTensor())
+        self._test_ims, self._test_labels = utils.get_all_data_from_pytorch_dataset(test_set)
+
+        self._PCA = None
+
+        self._y_preprocessing = utils.get_multiclass_to_binary_truth_f(10)
+
+    def get_training_examples(self, n: int = None, apply_representations: bool = True,
+                              dim_reduction: int = None, shuffle: bool = False):
+        return self.get_examples(self._training_ims, self._training_labels, n, apply_representations,
+                                 dim_reduction, shuffle, self._y_preprocessing)
+
+    def get_test_examples(self, n: int = None, apply_representations: bool = True,
+                          dim_reduction: int = None, shuffle: bool = False):
+        return self.get_examples(self._test_ims, self._test_labels, n, apply_representations,
+                                 dim_reduction, shuffle, self._y_preprocessing)
+
+    def get_batch_generators(self, batch_size):
+        def train_batch_generator():
+            i = 0
+            batch_x, batch_y = None, None
+            while i < self._n_train:
+                batch_x, batch_y = self.get_examples(self._training_ims[i:i + batch_size],
+                                                     self._training_labels[i:i + batch_size])
+                i += batch_size
+            yield batch_x, batch_y
+
+        def test_batch_generator():
+            i = 0
+            batch_x, batch_y = None, None
+            while i < self._n_test:
+                batch_x, batch_y = self.get_examples(self._test_ims[i:i + batch_size],
+                                                     self._test_labels[i:i + batch_size])
+                i += batch_size
+            yield batch_x, batch_y
+
+        return train_batch_generator(), test_batch_generator()
+
+    @abstractmethod
+    def get_raw_input_shape(self, conv=False):
+        return (1, 3, 32, 32) if conv else 3072
+
+
 def get_dataset(dataset_str, normalize_raw, normalize_reps):
-    if dataset_str == 'mnist':
+    if dataset_str.lower() == 'mnist':
         return RepresentableMnist([], False, False, normalize_raw, normalize_reps)
+    elif dataset_str.lower() == 'cifar':
+        return RepresentableCIFAR10([], False, False, normalize_raw, normalize_reps)
     else:
         raise ValueError("Dataset {} not supported".format(dataset_str))

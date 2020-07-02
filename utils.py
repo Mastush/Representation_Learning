@@ -1,5 +1,7 @@
 import torch
+from torch.utils.data import DataLoader
 import numpy as np
+from tqdm import tqdm
 
 
 EPSILON = 0.0000001
@@ -134,3 +136,15 @@ def get_multiclass_to_binary_truth_f(n_classes):
 def print_args(args):
     for key, val in args.__dict__.items():
         print("{} = {}".format(key, val))
+
+
+def get_all_data_from_pytorch_dataset(dataset, num_workers=30, shuffle=False):
+    dataset_size = len(dataset)
+    data_loader = DataLoader(dataset, batch_size=dataset_size,
+                             num_workers=num_workers, shuffle=shuffle)
+
+    for i, data in enumerate(data_loader, 0):
+        # get the inputs; data is a list of [inputs, labels]
+        ims, labels = data
+
+    return safe_tensor_to_ndarray(ims), safe_tensor_to_ndarray(labels)

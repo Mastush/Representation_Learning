@@ -6,7 +6,7 @@ import argparse
 def get_arguments():
     parser = argparse.ArgumentParser(description='set input arguments')
     parser.add_argument('-r', '--rounds', type=int, help="The number of wanted representation rounds")
-    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist'], help='Which dataset to use')
+    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'cifar'], help='Which dataset to use')
     parser.add_argument('-d', '--dim_red', type=int, default=None, help='Dimensionality reduction target dimension')
     parser.add_argument('-q', '--neurons', type=int, help='The number of neurons to use in the network\'s '
                                                           'tangent kernel representation')
