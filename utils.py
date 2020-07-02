@@ -1,7 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
-from tqdm import tqdm
 
 
 EPSILON = 0.0000001
