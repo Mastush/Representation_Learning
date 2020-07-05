@@ -147,3 +147,4 @@ def get_all_data_from_pytorch_dataset(dataset, num_workers=30, shuffle=False):
         ims, labels = data
 
     return safe_tensor_to_ndarray(ims), safe_tensor_to_ndarray(labels)
+

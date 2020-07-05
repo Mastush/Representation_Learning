@@ -27,6 +27,8 @@ def get_arguments():
                         help="Regularization coefficient for optimization per round.")
     parser.add_argument('-ae', '--alpha_evaluation', type=float, default=0.000000001,
                         help="Regularization coefficient for evaluation at the end.")
+    parser.add_argument('-c', '--cifar_path', type=str, default='/cs/dataset/CIFAR/cifar-10-batches-py/',
+                        help="Path for CIFAR dataset.")
     args = parser.parse_args()
 
     if args.network_type == 'conv' and args.dim_red is not None:
@@ -49,7 +51,7 @@ def get_arguments():
 def main():
     args = get_arguments()
     utils.print_args(args)
-    dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, args.normalize_reps)
+    dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, args.normalize_reps, args.cifar_path)
 
     print("Collected arguments and raw dataset.")
 

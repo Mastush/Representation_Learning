@@ -2,8 +2,6 @@ import numpy as np
 from abc import abstractmethod
 from sklearn.datasets import fetch_openml
 from sklearn.decomposition import PCA
-from torchvision.datasets import CIFAR10
-from torchvision.transforms import ToTensor
 
 import utils
 from representation import SequentialRepresentation
@@ -189,21 +187,37 @@ class RepresentableMnist(RepresentableVectorDataset):
 
 
 class RepresentableCIFAR10(RepresentableVectorDataset):
-    def __init__(self, representations: list,
+    def __init__(self, representations: list, cifar_path: str,
                  standardize_raw: bool = True, standardize_reps: bool = True,
                  normalize_raw: bool = False, normalize_reps: bool = False):
         super(RepresentableCIFAR10, self).__init__(representations, 50000, 10000, standardize_raw, standardize_reps,
                                                  normalize_raw, normalize_reps)
 
-        train_set = CIFAR10(root='./data', train=True, download=True, transform=ToTensor())
-        self._training_ims, self._training_labels = utils.get_all_data_from_pytorch_dataset(train_set)
-
-        test_set = CIFAR10(root='./data', train=False, download=True, transform=ToTensor())
-        self._test_ims, self._test_labels = utils.get_all_data_from_pytorch_dataset(test_set)
+        self._training_ims, self._training_labels, self._test_ims, self._test_labels = None, None, None, None
+        self._load_dataset(cifar_path)
 
         self._PCA = None
 
         self._y_preprocessing = utils.get_multiclass_to_binary_truth_f(10)
+
+    def _load_dataset(self, path):
+        import pickle
+        import os.path
+        for i in range(1, 6):
+            with open(os.path.join(path, 'data_batch_{}'.format(i)), 'rb') as in_file:
+                cifar_dict = pickle.load(in_file, encoding='bytes')
+                self._training_ims = cifar_dict[b'data'] if self._training_ims is None else \
+                    np.concatenate((self._training_ims, cifar_dict[b'data']))
+                self._training_labels = cifar_dict[b'labels'] if self._training_labels is None else \
+                    np.concatenate((self._training_labels, cifar_dict[b'labels']))
+        with open(os.path.join(path, 'test_batch'), 'rb') as in_file:
+            cifar_dict = pickle.load(in_file, encoding='bytes')
+            self._test_ims = cifar_dict[b'data']
+            self._test_labels = cifar_dict[b'labels']
+        self._training_ims = self._training_ims / 255
+        self._test_ims = self._test_ims / 255
+        self._training_ims.reshape((50000, 3, 32, 32))
+        self._test_ims.reshape((10000, 3, 32, 32))
 
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
                               dim_reduction: int = None, shuffle: bool = False):
@@ -241,10 +255,11 @@ class RepresentableCIFAR10(RepresentableVectorDataset):
         return (1, 3, 32, 32) if conv else 3072
 
 
-def get_dataset(dataset_str, normalize_raw, normalize_reps):
+def get_dataset(dataset_str: str, normalize_raw: bool, normalize_reps: bool, cifar_path: str = None):
     if dataset_str.lower() == 'mnist':
         return RepresentableMnist([], False, False, normalize_raw, normalize_reps)
     elif dataset_str.lower() == 'cifar':
-        return RepresentableCIFAR10([], False, False, normalize_raw, normalize_reps)
+        assert cifar_path is not None, "CIFAR path is required in order to use CIFAR10"
+        return RepresentableCIFAR10([], cifar_path, False, False, normalize_raw, normalize_reps)
     else:
         raise ValueError("Dataset {} not supported".format(dataset_str))
