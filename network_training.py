@@ -54,7 +54,7 @@ def train_network(model, x, y, x_test=None, y_test=None, epochs=50, batch_size=6
 
 def get_network_training_args():
     parser = argparse.ArgumentParser(description='set input arguments')
-    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist'], help='Which dataset to use')
+    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'cifar'], help='Which dataset to use')
     parser.add_argument('-d', '--dim_red', type=int, default=None, help='Dimensionality reduction target dimension')
     parser.add_argument('-q', '--neurons', type=int, help='The number of neurons to use in each hidden layers')
     parser.add_argument('-l', '--layers', type=int, default=1, help="The number of hidden layers")
@@ -74,6 +74,8 @@ def get_network_training_args():
     parser.add_argument('-w', '--weight_decay', type=float, default=0.0000001,
                         help="Coefficient for weight decay in training")
     parser.add_argument('-v', '--verbose', type=int, default=0, help="Should be 1 to see batch progression.")
+    parser.add_argument('-c', '--cifar_path', type=str, default='/cs/dataset/CIFAR/cifar-10-batches-py/',
+                        help="Path for CIFAR dataset.")
     args = parser.parse_args()
 
     if args.network_type == 'conv' and args.dim_red is not None:
@@ -94,7 +96,7 @@ def get_optimizer(opt_str):
 def main_nn():
     args = get_network_training_args()
     utils.print_args(args)
-    dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, False)
+    dataset = data_loading.get_dataset(args.dataset, args.normalize_raw, False, args.cifar_path)
     if args.network_type == 'simple':
         d = args.dim_red if args.dim_red is not None else dataset.get_raw_input_shape()
         model = FCNetwork(d, args.neurons, args.layers)
@@ -103,7 +105,7 @@ def main_nn():
         model = ConvNetwork(input_shape, args.neurons, args.layers, args.kernel_size, auto_pad=True)
 
     model.to(utils.get_device())
-    print("Model device is cuda?".format(next(model.parameters()).is_cuda))
+    print("Model device is cuda? {}".format(next(model.parameters()).is_cuda))
 
     x, y = dataset.get_training_examples(args.n_train, False, args.dim_red if args.network_type == 'simple' else None)
     x_test, y_test = dataset.get_test_examples(args.n_test, False,
