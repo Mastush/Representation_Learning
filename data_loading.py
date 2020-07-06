@@ -28,14 +28,22 @@ class RepresentableDataset:
     def get_batch_generators(self, batch_size):
         pass
 
-    def apply_representations_to_data(self, x):
+    def apply_representations_to_data(self, x, print_progress: bool = False):
         """Iteratively applies standardization and representations to the data"""
         if self._standardize_raw:
             self._standardize_data(x, 0)
         if self._normalize_raw:
             x = utils.normalize_vectors(x)
         for i, rep in enumerate(self._representations):
-            x = np.asarray([rep(x[j]) for j in range(x.shape[0])])  # TODO: allow vectorized way
+            next_x = []
+            last_per = 0
+            for j in range(x.shape[0]):
+                next_x.append(rep(x[j]))
+                if print_progress and ((j + 1) / x.shape[0]) - last_per > 0.1:
+                    last_per += 0.1
+                    print("Applied {}% of representation no. {} out of {} to the "
+                          "data.".format(round(last_per * 100), i + 1, len(self._representations)))
+            x = np.asarray(next_x)
             if self._standardize_reps:
                 self._standardize_data(x, i + 1)
             if self._normalize_reps:
@@ -104,16 +112,17 @@ class RepresentableVectorDataset(RepresentableDataset):
 
     @abstractmethod
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
-                              dim_reduction: int = None, shuffle: bool = False):
+                              dim_reduction: int = None, shuffle: bool = False, print_progress: bool = False):
         pass
 
     @abstractmethod
     def get_test_examples(self, n: int = None, apply_representations: bool = True,
-                          dim_reduction: int = None, shuffle: bool = False):
+                          dim_reduction: int = None, shuffle: bool = False, print_progress: bool = False):
         pass
 
     def get_examples(self, x, y, n: int = None, apply_representations: bool = True,
-                     dim_reduction: int = None, shuffle: bool = False, y_preprocessing=None):
+                     dim_reduction: int = None, shuffle: bool = False, y_preprocessing=None,
+                     print_progress: bool = False):
         x = np.copy(x)  #TODO: check if I can remove these copies
         y = np.copy(y)
         if self._PCA is None and dim_reduction is not None:  # TODO: allow redoing PCA
@@ -124,7 +133,7 @@ class RepresentableVectorDataset(RepresentableDataset):
         if dim_reduction is not None:
             x = self._apply_pca(x, dim_reduction)
         if apply_representations:
-            x = self.apply_representations_to_data(x)
+            x = self.apply_representations_to_data(x, print_progress)
         if y_preprocessing is not None:
             y = y_preprocessing(y)
         return x, y
@@ -151,14 +160,14 @@ class RepresentableMnist(RepresentableVectorDataset):
         self._y_preprocessing = utils.get_multiclass_to_binary_truth_f(10)
 
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
-                              dim_reduction: int = None, shuffle: bool = False):
+                              dim_reduction: int = None, shuffle: bool = False, print_progress: bool = False):
         return self.get_examples(self._training_ims, self._training_labels, n, apply_representations,
-                                 dim_reduction, shuffle, self._y_preprocessing)
+                                 dim_reduction, shuffle, self._y_preprocessing, print_progress)
 
     def get_test_examples(self, n: int = None, apply_representations: bool = True,
-                          dim_reduction: int = None, shuffle: bool = False):
+                          dim_reduction: int = None, shuffle: bool = False, print_progress: bool = False):
         return self.get_examples(self._test_ims, self._test_labels, n, apply_representations,
-                                 dim_reduction, shuffle, self._y_preprocessing)
+                                 dim_reduction, shuffle, self._y_preprocessing, print_progress)
 
     def get_batch_generators(self, batch_size):
         def train_batch_generator():
@@ -220,14 +229,14 @@ class RepresentableCIFAR10(RepresentableVectorDataset):
         self._test_ims.reshape((10000, 3, 32, 32))
 
     def get_training_examples(self, n: int = None, apply_representations: bool = True,
-                              dim_reduction: int = None, shuffle: bool = False):
+                              dim_reduction: int = None, shuffle: bool = False, print_progress: bool = False):
         return self.get_examples(self._training_ims, self._training_labels, n, apply_representations,
-                                 dim_reduction, shuffle, self._y_preprocessing)
+                                 dim_reduction, shuffle, self._y_preprocessing, print_progress)
 
     def get_test_examples(self, n: int = None, apply_representations: bool = True,
-                          dim_reduction: int = None, shuffle: bool = False):
+                          dim_reduction: int = None, shuffle: bool = False, print_progress: bool = False):
         return self.get_examples(self._test_ims, self._test_labels, n, apply_representations,
-                                 dim_reduction, shuffle, self._y_preprocessing)
+                                 dim_reduction, shuffle, self._y_preprocessing, print_progress)
 
     def get_batch_generators(self, batch_size):
         def train_batch_generator():

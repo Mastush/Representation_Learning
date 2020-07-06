@@ -2,6 +2,8 @@ import rounds, data_loading, evaluation, svm, utils
 
 import argparse
 
+from resource import getrusage, RUSAGE_SELF
+
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='set input arguments')
@@ -69,10 +71,11 @@ def main():
         raise ValueError("Network type {} not supported".format(args.network_type))
 
     print("Finished getting Representations")
-    print("Getting represented dataset...")
-
-    x, y = dataset.get_training_examples(args.n_train, dim_reduction=args.dim_red)
-    x_test, y_test = dataset.get_test_examples(args.n_test, dim_reduction=args.dim_red)
+    print("Getting represented dataset:")
+    print("Getting training examples...")
+    x, y = dataset.get_training_examples(args.n_train, dim_reduction=args.dim_red, print_progress=True)
+    print("Getting training examples...")
+    x_test, y_test = dataset.get_test_examples(args.n_test, dim_reduction=args.dim_red, print_progress=True)
 
     print("Getting final linear separator")
 
@@ -86,4 +89,6 @@ def main():
 
 
 if __name__ == '__main__':
+    print(getrusage(RUSAGE_SELF).ru_maxrss)
     main()
+    print(getrusage(RUSAGE_SELF).ru_maxrss)

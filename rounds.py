@@ -19,7 +19,7 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
 
     nn_reps = representation.get_net_rep(network, input_shape=input_shape)
     dataset.append_representation(nn_reps[0])
-    x, y = dataset.get_training_examples(n_train, dim_reduction=dim_reduction)
+    x, y = dataset.get_training_examples(n_train, dim_reduction=dim_reduction, print_progress=True)
     # TODO: allow x, y to be batch generators
 
     w = svm.get_linear_separator(x, y, type_of_classifier='sdca', verbose=2, alpha=alpha, max_iter=max_iter)
@@ -55,12 +55,12 @@ def add_network_to_vector_rounds(n_rounds: int, dataset: RepresentableVectorData
                                  return_output_dim: bool = True):
     output_dim = None
     for i in range(n_rounds):
-        print("Starting round {}".format(i + 1))
+        print("Starting round {}:".format(i + 1))
         output_dim = add_network_to_vector_representation_rep(dataset, input_shape if i == 0 else output_dim, q - i,
                                                               n_train, max_iter_list[i], alpha_list[i],
                                                               dim_reduction, network_type,
                                                               )
-        print("Round {}/{} finished".format(i + 1, n_rounds))
+        print("Round {}/{} finished\n".format(i + 1, n_rounds))
         # q - i is because of q=d bug. TODO: fix q=d bug
     if return_output_dim:
         return output_dim
