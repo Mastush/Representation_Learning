@@ -3,6 +3,7 @@ import rounds, data_loading, evaluation, svm, utils
 import argparse
 
 from resource import getrusage, RUSAGE_SELF
+import time
 
 
 def get_arguments():
@@ -90,5 +91,7 @@ def main():
 
 if __name__ == '__main__':
     print(getrusage(RUSAGE_SELF).ru_maxrss)
+    start_time = time.time()
     main()
-    print(getrusage(RUSAGE_SELF).ru_maxrss)
+    print("Total memory used: {}".format(getrusage(RUSAGE_SELF).ru_maxrss))
+    print("Total runtime: {} minutes".format((time.time() - start_time) // 60))

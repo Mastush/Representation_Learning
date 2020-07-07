@@ -3,7 +3,7 @@ from torch.optim import SGD, Adam, Adagrad
 import numpy as np
 from torch import from_numpy
 
-import argparse
+import argparse, time
 
 import evaluation, data_loading, utils
 from networks import FCNetwork, ConvNetwork
@@ -115,4 +115,6 @@ def main_nn():
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     main_nn()
+    print("Total runtime: {} minutes".format((time.time() - start_time) // 60))
