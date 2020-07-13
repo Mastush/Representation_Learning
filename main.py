@@ -11,8 +11,8 @@ def get_arguments():
     parser.add_argument('-r', '--rounds', type=int, help="The number of wanted representation rounds")
     parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'cifar'], help='Which dataset to use')
     parser.add_argument('-d', '--dim_red', type=int, default=None, help='Dimensionality reduction target dimension')
-    parser.add_argument('-q', '--neurons', type=int, help='The number of neurons to use in the network\'s '
-                                                          'tangent kernel representation')
+    parser.add_argument('-q', '--neurons', type=int, nargs='+',
+                        help='The number of neurons to use in the network\'s tangent kernel representation')
     parser.add_argument('--n_train', type=int, default=None, help="The number of examples to use for training. "
                                                                   "None means the entire dataset.")
     parser.add_argument('--n_test', type=int, default=None, help="The number of examples to use for testing. "
@@ -48,6 +48,14 @@ def get_arguments():
     elif len(args.alpha_optimization) != args.rounds:
         raise ValueError("alpha_optimization should have either 1 value or the same as the number of rounds!")
 
+    if len(args.neurons) == 1:
+        q_list = []
+        for i in range(args.rounds):
+            q_list.append(args.neurons[0] - i)
+        args.neurons = q_list
+    elif len(args.neurons) != args.rounds:
+        raise ValueError("neurons should have either 1 value or the same as the number of rounds!")
+
     return args
 
 
@@ -75,7 +83,7 @@ def main():
     print("Getting represented dataset:")
     print("Getting training examples...")
     x, y = dataset.get_training_examples(args.n_train, dim_reduction=args.dim_red, print_progress=True)
-    print("Getting training examples...")
+    print("Getting test examples...")
     x_test, y_test = dataset.get_test_examples(args.n_test, dim_reduction=args.dim_red, print_progress=True)
 
     print("Getting final linear separator")

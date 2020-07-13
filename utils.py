@@ -103,14 +103,21 @@ def pad_image(img, h, w):
                           mode='constant', constant_values=0))
 
 
-def image_to_patches(im, patch_size):
+def calculate_num_of_patches(h, w, patch_r, stride):
+    n_h = (h - 2 * patch_r) // stride
+    n_w = (w - 2 * patch_r) // stride
+    return n_h, n_w
+
+
+def image_to_patches(im, patch_size, stride):
     c, h, w = im.shape
     patch_r = patch_size // 2
     # this saves spatial relations
-    patches = np.zeros((h - 2 * patch_r, w - 2 * patch_r, c, patch_size, patch_size))
+    n_h, n_w = calculate_num_of_patches(h, w, patch_r, stride)
+    patches = np.zeros((n_h, n_w, c, patch_size, patch_size))
     for i in range(patches.shape[0]):
         for j in range(patches.shape[1]):
-            patches[i, j, ...] = im[:, i:i + patch_size, j:j + patch_size]
+            patches[i, j, ...] = im[:, (i * stride):(i * stride) + patch_size, (j * stride):(j * stride) + patch_size]
     return patches
 
 

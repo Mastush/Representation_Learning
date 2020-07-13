@@ -49,14 +49,14 @@ def add_network_to_vector_representation_rep(dataset: RepresentableVectorDataset
         return dataset.get_last_representation().get_output_shape(x[0])
 
 
-def add_network_to_vector_rounds(n_rounds: int, dataset: RepresentableVectorDataset, input_shape, q: int,
+def add_network_to_vector_rounds(n_rounds: int, dataset: RepresentableVectorDataset, input_shape, q: list,
                                  max_iter_list: list, alpha_list: list,
                                  n_train: int = None, dim_reduction: int = None, network_type: str = "simple",
                                  return_output_dim: bool = True):
     output_dim = None
     for i in range(n_rounds):
         print("Starting round {}:".format(i + 1))
-        output_dim = add_network_to_vector_representation_rep(dataset, input_shape if i == 0 else output_dim, q - i,
+        output_dim = add_network_to_vector_representation_rep(dataset, input_shape if i == 0 else output_dim, q[i],
                                                               n_train, max_iter_list[i], alpha_list[i],
                                                               dim_reduction, network_type,
                                                               )

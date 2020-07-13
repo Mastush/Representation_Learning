@@ -91,10 +91,7 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):
     def get_kernel_size(self):
         return self.get_output_shape()[-1]
 
-    def _closed_form_call(self, x):  # TODO: REDO
-            return 1
-
-    def __call__(self, x, return_ndarray=True, closed_form=False):
+    def __call__(self, x, return_ndarray=True):
         self._model.zero_grad()
         self._model.train()
         if x.size == utils.shape_to_size(self.input_shape):
@@ -112,9 +109,6 @@ class SimpleConvNetworkGradientRepresentation(BaseRepresentation):
             side_size = int(side_size)
             x = np.reshape(x, (b, c, side_size, side_size))
 
-        if closed_form:
-            return self._closed_form_call(x)
-
         if not isinstance(x, torch.Tensor):
             x = torch.from_numpy(x).float()
         y = self._model(x.to(utils.get_device()))
@@ -130,11 +124,11 @@ class PatchedSimpleConvGradRepresentation(BaseRepresentation):
         self._inner_rep = simple_conv_grad_rep
         self._patch_size = simple_conv_grad_rep.get_kernel_size()
 
-    def __call__(self, x, pad: int = 0):
+    def __call__(self, x, pad: int = 0, stride: int = 2):
         x = np.reshape(x, self._inner_rep.input_shape[1:])
         if pad > 0:
             x = utils.pad_image(x, pad, pad)
-        patches = utils.image_to_patches(x, self._patch_size)
+        patches = utils.image_to_patches(x, self._patch_size, stride)
         y = np.zeros((*patches.shape[:2], *self._inner_rep.get_output_shape()))
         for i in range(patches.shape[0]):
             for j in range(patches.shape[1]):
