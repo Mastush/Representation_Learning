@@ -123,8 +123,6 @@ class RepresentableVectorDataset(RepresentableDataset):
     def get_examples(self, x, y, n: int = None, apply_representations: bool = True,
                      dim_reduction: int = None, shuffle: bool = False, y_preprocessing=None,
                      print_progress: bool = False):
-        x = np.copy(x)  #TODO: check if I can remove these copies
-        y = np.copy(y)
         if self._PCA is None and dim_reduction is not None:  # TODO: allow redoing PCA
             self._make_and_fit_pca(x, dim_reduction)
         if shuffle:
