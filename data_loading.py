@@ -220,7 +220,7 @@ class RepresentableCIFAR10(RepresentableVectorDataset):
         with open(os.path.join(path, 'test_batch'), 'rb') as in_file:
             cifar_dict = pickle.load(in_file, encoding='bytes')
             self._test_ims = cifar_dict[b'data']
-            self._test_labels = cifar_dict[b'labels']
+            self._test_labels = np.asarray(cifar_dict[b'labels'])
         self._training_ims = self._training_ims / 255
         self._test_ims = self._test_ims / 255
         self._training_ims.reshape((50000, 3, 32, 32))

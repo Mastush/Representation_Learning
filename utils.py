@@ -131,7 +131,7 @@ def get_activation_gradient(activation, x, return_ndarray=False):
 
 def get_multiclass_to_binary_truth_f(n_classes):
 
-    def multiclass_to_binary_truth(truth):
+    def multiclass_to_binary_truth(truth: np.ndarray):
         truth = (truth.astype(np.int) > n_classes // 2).astype(np.int)
         truth[truth == 0] = -1
         return truth
