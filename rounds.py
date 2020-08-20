@@ -1,6 +1,7 @@
 import representation, svm
 from data_loading import RepresentableVectorDataset
 import networks, utils
+import time
 
 
 def is_convolutional(nn):
@@ -56,11 +57,12 @@ def add_network_to_vector_rounds(n_rounds: int, dataset: RepresentableVectorData
     output_dim = None
     for i in range(n_rounds):
         print("Starting round {}:".format(i + 1))
+        start_time = time.time()
         output_dim = add_network_to_vector_representation_rep(dataset, input_shape if i == 0 else output_dim, q[i],
                                                               n_train, max_iter_list[i], alpha_list[i],
                                                               dim_reduction, network_type,
                                                               )
-        print("Round {}/{} finished\n".format(i + 1, n_rounds))
+        print("Round {}/{} finished in {} minutes.\n".format(i + 1, n_rounds, (time.time() - start_time) // 60))
         # q - i is because of q=d bug. TODO: fix q=d bug
     if return_output_dim:
         return output_dim
